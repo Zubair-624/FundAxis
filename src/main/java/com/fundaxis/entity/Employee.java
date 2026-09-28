@@ -66,6 +66,7 @@ public class Employee {
     private EmployeeStatus employeeStatus = EmployeeStatus.ACTIVE;
 
     ///---------- Local Time Setup ------------
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -75,19 +76,10 @@ public class Employee {
 
 
     ///---------- Account Deactivations ----------
+
     @Column(length = 255)
     private String deactivationReason;
 
     private LocalDateTime deactivatedAt;
-
-
-
-
-
-
-
-
-
-
 
 }
