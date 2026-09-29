@@ -19,9 +19,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     // Check whether the email belongs to another employee
     boolean existsByEmailAndEmployeeIdNot(String email, String employeeId);
 
-    List<Employee> findByEmployeeStatus(
-            Employee.EmployeeStatus employeeStatus
-    );
+    List<Employee> findByEmployeeStatus(Employee.EmployeeStatus employeeStatus);
 
 
 }
