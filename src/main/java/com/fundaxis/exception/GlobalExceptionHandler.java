@@ -105,4 +105,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
 
     }
+
+
+    //==================== Loan Extension Exceptions ====================//
+
+    // Handle Loan Extension Not Found
+    // Example: retrieving, updating, approving, rejecting, or cancelling a non-existing extension
+    // Returns HTTP 404 NOT FOUND
+    @ExceptionHandler(LoanExtensionNotFoundException.class)
+    public ResponseEntity<String> handleLoanExtensionNotFoundException(LoanExtensionNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+
+    }
+
+
+    // Handle Duplicate Loan Extension
+    // Example: a loan already has a pending extension request
+    // Returns HTTP 409 CONFLICT
+    @ExceptionHandler(DuplicateLoanExtensionException.class)
+    public ResponseEntity<String> handleDuplicateLoanExtensionException(DuplicateLoanExtensionException exception) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+
+    }
 }
