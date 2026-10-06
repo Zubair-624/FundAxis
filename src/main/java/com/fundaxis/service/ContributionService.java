@@ -2,14 +2,18 @@ package com.fundaxis.service;
 
 import com.fundaxis.entity.Contribution;
 import com.fundaxis.entity.Employee;
+import com.fundaxis.exception.ContributionNotFoundException;
+import com.fundaxis.exception.DuplicateContributionException;
+import com.fundaxis.exception.EmployeeNotFoundException;
 import com.fundaxis.repository.ContributionRepository;
 import com.fundaxis.repository.EmployeeRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class ContributionService {
@@ -19,104 +23,185 @@ public class ContributionService {
     private final ContributionRepository contributionRepository;
     private final EmployeeRepository employeeRepository;
 
-    // ContributionService needs ContributionRepository to communicate with the database
-    public ContributionService(ContributionRepository contributionRepository, EmployeeRepository employeeRepository){
+    // ContributionService needs both repositories
+    // to communicate with the database
+    public ContributionService(ContributionRepository contributionRepository, EmployeeRepository employeeRepository) {
         this.contributionRepository = contributionRepository;
         this.employeeRepository = employeeRepository;
+
     }
 
 
+    ///---------- Read ----------///
 
-    ///---------- Read ----------
-
-    // Get all Contributions List
-    public List<Contribution> getAllContributionsList(){
+    // Get all Contributions
+    public List<Contribution> getAllContributionsList() {
 
         return contributionRepository.findAll();
     }
 
-    // Get contribution by -> id
-    public Optional<Contribution> getContributionById(Long id){
 
-        return contributionRepository.findById(id);
-    }
+    // Get one Contribution by Contribution ID
+    public Contribution getContributionById(Long id) {
 
-    // Get contribution by -> employeeId
-    public Optional<Contribution> getEmployeeContributionsByEmployeeId(String employeeId) {
-
-        return contributionRepository.findByEmployeeId(employeeId);
+        return contributionRepository.findById(id)
+                .orElseThrow(() -> new ContributionNotFoundException("Contribution with ID: " + id + " does not exist"));
     }
 
 
-    ///---------- Create ----------
+    // Get all Contributions belonging to an Employee
+    // Example: EMP001
+    public List<Contribution> getEmployeeContributionsByEmployeeId(String employeeId) {
+
+        return contributionRepository.findByEmployeeEmployeeId(employeeId);
+    }
+
+
+    ///---------- Create ----------///
 
     @Transactional
-    public Contribution createContribution(String employeeId, Contribution contribution){
+    public Contribution createContribution(String employeeId, Contribution contribution) {
 
-        // Find the employee using official Employee ID
+        // Find the Employee using the official Employee ID
         Employee employee = employeeRepository.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new RuntimeException("Employee ID is not found " + employeeId));
+                .orElseThrow(() -> new EmployeeNotFoundException("Employee with Employee ID: " + employeeId + " does not exist"));
+
+
+        // Store contribution month using the first day of the month
+        contribution.setContributionMonth(contribution.getContributionMonth().withDayOfMonth(1));
+
+
+        // Prevent more than one contribution for the same employee and month
+        if (contributionRepository.existsByEmployeeEmployeeIdAndContributionMonth(employeeId, contribution.getContributionMonth()))
+            throw new DuplicateContributionException("Contribution already exists for Employee ID " + employeeId + " for month " + contribution.getContributionMonth());
 
 
         // Connect the Employee with the Contribution
         contribution.setEmployee(employee);
 
-        // Save Contribution
+
+        // New contributions always start as pending
+        contribution.setContributionStatus(Contribution.ContributionStatus.PENDING);
+
+
+        // Pending contributions do not have a payment date
+        contribution.setPaymentDate(null);
+
+        // Save the Contribution
         return contributionRepository.save(contribution);
 
     }
 
 
 
-    ///---------- Update ----------
+
+    ///========== Mark a contribution as paid / Payment  ==========///
+    @Transactional
+    public Contribution markContributionAsPaid(Long id, LocalDate paymentDate) {
+
+        // Find the Contribution
+        Contribution existingContribution = contributionRepository.findById(id)
+                .orElseThrow(() -> new ContributionNotFoundException("Contribution with ID: " + id + " does not exist"));
+
+        // Only pending contributions can be marked as paid
+        if (existingContribution.getContributionStatus() != Contribution.ContributionStatus.PENDING) {
+            throw new IllegalStateException("Only pending contributions can be marked as paid: " + id);
+
+        }
+
+        // Payment date is required when marking a contribution as paid
+        if (paymentDate == null) {
+            throw new IllegalArgumentException("Payment date is required");
+
+        }
+
+        // Payment date cannot be in the future
+        if (paymentDate.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Payment date cannot be in the future");
+
+        }
+
+        // Change the contribution status from PENDING to PAID
+        existingContribution.setContributionStatus(Contribution.ContributionStatus.PAID);
+
+        // Record the date the payment was made
+        existingContribution.setPaymentDate(paymentDate);
+
+        // Save the updated contribution to the database and return it
+        return contributionRepository.save(existingContribution);
+
+    }
+
+
+    ///---------- Update ----------///
 
     @Transactional
-    public Contribution updateContributionByEmployeeId(String EmployeeId, Contribution updatedContribution) {
+    public Contribution updateContribution(Long id, Contribution updatedContribution) {
 
-        // Find existing Contribution
-        Contribution existingContribution = contributionRepository.findByEmployeeId(EmployeeId)
-                        .orElseThrow(() -> new RuntimeException("Contribution not found: " + EmployeeId));
+        // Find the existing Contribution
+        Contribution existingContribution = contributionRepository.findById(id)
+                        .orElseThrow(() -> new ContributionNotFoundException("Contribution with ID: " + id + " does not exist"));
 
-        // Dynamically update editable fields
-        //
-        // Excluded fields:
-        // id          -> Database primary key
-        // employee    -> Employee relationship should not change here
-        // createdAt   -> Original creation time
-        // updatedAt   -> Managed automatically by Hibernate
 
+        // Store contribution month using the first day of the month
+        updatedContribution.setContributionMonth(updatedContribution.getContributionMonth().withDayOfMonth(1));
+
+
+        // Only pending contributions can be updated
+        if (existingContribution.getContributionStatus() != Contribution.ContributionStatus.PENDING) {
+            throw new IllegalStateException("Only pending contributions can be updated: " + id);
+
+        }
+
+        // Get the Employee ID already connected to this Contribution
+        String employeeId = existingContribution.getEmployee().getEmployeeId();
+
+        // Prevent another contribution for the same employee and month
+        if (contributionRepository.existsByEmployeeEmployeeIdAndContributionMonthAndIdNot(employeeId, updatedContribution.getContributionMonth(), id)) {
+            throw new DuplicateContributionException("Contribution already exists for Employee ID " + employeeId + " for month " + updatedContribution.getContributionMonth());
+
+        }
+
+        // Update editable fields while protecting system-controlled fields
         BeanUtils.copyProperties(
                 updatedContribution,
                 existingContribution,
                 "id",
                 "employee",
+                "contributionStatus",
+                "paymentDate",
                 "createdAt",
                 "updatedAt"
         );
 
-        // Save updated Contribution
         return contributionRepository.save(existingContribution);
-    }
 
+    }
 
 
     ///---------- Cancel Contribution ----------///
 
     @Transactional
-    public Contribution cancelContribution(String employeeId) {
+    public Contribution cancelContribution(Long id) {
 
-        // Find existing Contribution
-        Contribution existingContribution = contributionRepository.findByEmployeeId(employeeId)
-                        .orElseThrow(() -> new RuntimeException("Contribution not found: " + employeeId));
+        // Find the Contribution
+        Contribution existingContribution = contributionRepository.findById(id)
+                        .orElseThrow(() -> new ContributionNotFoundException("Contribution with ID: " + id + " does not exist"));
 
-        // Mark Contribution as CANCELLED
-        // We do not physically delete the financial record.
+        // Only pending contributions can be canceled
+        if (existingContribution.getContributionStatus() != Contribution.ContributionStatus.PENDING) {
+            throw new IllegalStateException("Only pending contributions can be canceled: " + id);
+
+        }
+
+        // Change the contribution status to CANCELED
         existingContribution.setContributionStatus(Contribution.ContributionStatus.CANCELED);
 
-        // Save the canceled Contribution
+        // Canceled contributions do not have a payment date
+        existingContribution.setPaymentDate(null);
+
         return contributionRepository.save(existingContribution);
+
     }
-
-
 
 }
