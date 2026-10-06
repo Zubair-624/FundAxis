@@ -10,16 +10,19 @@ import java.util.Optional;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
+    // Find employee using official NBL Employee ID (employeeId)
     Optional<Employee> findByEmployeeId(String employeeId);
 
+    // Check duplicate Employee ID (employeeId) during creation
     boolean existsByEmployeeId(String employeeId);
 
+    // Check duplicate email during creation
     boolean existsByEmail(String email);
 
-    // Check whether the email belongs to another employee
-    boolean existsByEmailAndEmployeeIdNot(String email, String employeeId);
-
+    // Get employees by status
     List<Employee> findByEmployeeStatus(Employee.EmployeeStatus employeeStatus);
 
+    // Does an employee already exist with this email, but with a different employee ID?
+    boolean existsByEmailAndEmployeeIdNot(String email, String employeeId);
 
 }
