@@ -4,6 +4,7 @@ import com.fundaxis.dto.DeactivateRequest;
 import com.fundaxis.entity.Employee;
 import com.fundaxis.service.EmployeeService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,25 +22,26 @@ public class EmployeeController {
         this.employeeService = employeeService;
     }
 
-    ///---------- Deactivate an Employee ----------///
+    ///==================== Deactivate an Employee ====================///
     @PatchMapping("/{employeeId}/deactivate")
     public ResponseEntity<Employee> deactivateEmployee(@PathVariable String employeeId, @Valid @RequestBody DeactivateRequest deactivateRequest){
 
-        Employee deactivateEmployee = employeeService.deactivatedBankEmployee(employeeId, deactivateRequest.getDeactivateReason());
+        Employee deactivateEmployee = employeeService.deactivateEmployee(employeeId, deactivateRequest.getDeactivateReason());
 
         return ResponseEntity.ok(deactivateEmployee);
+
     }
 
-    ///---------- Activate an Employee ----------///
+    ///==================== Activate an Employee ====================///
     @PatchMapping("/{employeeId}/activate")
     public ResponseEntity<Employee> activateEmployee(@PathVariable String employeeId){
 
-        Employee activateEmployee = employeeService.reactivateBankEmployee(employeeId);
+        Employee activateEmployee = employeeService.activateEmployee(employeeId);
 
         return ResponseEntity.ok(activateEmployee);
     }
 
-    ///---------- List ----------///
+    ///==================== List ====================///
 
     // Get all Employee List and return with HTTP 200 OK
     @GetMapping
@@ -57,50 +59,64 @@ public class EmployeeController {
 
     @GetMapping("/inactive")
     // Get all deactivate Employee List and return with HTTP 200 OK
-    public ResponseEntity<List<Employee>> getAllInDeactivateEmployeeList(){
+    public ResponseEntity<List<Employee>> getAllInactiveEmployeeList(){
 
-        return ResponseEntity.ok(employeeService.getAllDeactivateEmployeeList());
+        return ResponseEntity.ok(employeeService.getAllInactiveEmployeeList());
     }
 
 
-    ///---------- Create ----------///
+    ///---------- Get Employees By Status ----------
+    @GetMapping("/status/{employeeStatus}")
+    public ResponseEntity<List<Employee>> getAllEmployeeByEmployeeStatus(@PathVariable Employee.EmployeeStatus employeeStatus){
+
+        return ResponseEntity.ok(employeeService.getAllEmployeeByEmployeeStatus(employeeStatus));
+
+    }
+
+
+    ///==================== Create ====================///
 
     // Create a new Employee
     @PostMapping
     public ResponseEntity<Employee> createEmployee(@Valid @RequestBody Employee employee){
 
-        Employee createNewEmployee = employeeService.createBankEmployee(employee);
+        // Create and save a new employee
+        Employee createNewEmployee = employeeService.createEmployee(employee);
 
-        return ResponseEntity.ok(createNewEmployee);
+        // Return HTTP 201 CREATED after successful employee creation
+        return ResponseEntity.status(HttpStatus.CREATED).body(createNewEmployee);
+
     }
 
 
-    ///---------- Read ----------///
+    ///==================== Read ====================///
 
     // Get Employee by -> id
     @GetMapping("/id/{id}")
-    public ResponseEntity<Employee> getEmployeeById(
-            @PathVariable Long id){
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id){
 
-        return employeeService.findEmployeeById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        // Return employee using database ID
+        return ResponseEntity.ok(employeeService.findEmployeeById(id));
+
     }
 
     // Get Employee by -> employeeId
     @GetMapping("/employeeId/{employeeId}")
-    public ResponseEntity<Employee> getEmployeeByEmployeeId(
-            @PathVariable String employeeId){
+    public ResponseEntity<Employee> getEmployeeByEmployeeId(@PathVariable String employeeId){
 
-        return employeeService.findEmployeeByEmployeeId(employeeId).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        // Return employee using official Employee ID
+        return ResponseEntity.ok(employeeService.findEmployeeByEmployeeId(employeeId));
+
     }
 
 
-    ///---------- Update ----------///
+    ///==================== Update ====================///
 
     // Update an existing employee with -> employeeId
     @PutMapping("/{employeeId}")
     public ResponseEntity<Employee> updateEmployeeByEmployeeId(@PathVariable String employeeId, @Valid @RequestBody Employee employee){
 
-        Employee updateEmployee = employeeService.updateEmployeeByEmployeeId(employeeId, employee);
+        Employee updateEmployee = employeeService.updateEmployee(employeeId, employee);
 
         return ResponseEntity.ok(updateEmployee);
     }
