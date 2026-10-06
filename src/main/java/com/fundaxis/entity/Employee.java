@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
@@ -21,20 +22,22 @@ import java.time.LocalDateTime;
 @Table(
         name = "employees",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = "employeeId"),
+                @UniqueConstraint(columnNames = "employee_id"),
                 @UniqueConstraint(columnNames = "email")
         }
 )
 public class Employee {
 
+    // Database primary key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     ///--------------------------------------------------------------------------------------
-    // official employee ID, that issued by the National Bank/HR, entered manually by admin
+    // official NBL employee identifier, that issued by the National Bank/HR, entered manually by admin
     @NotBlank(message = "Employee ID is required")
-    @Column(nullable = false, length = 50)
+    @Column(name = "employee_id", nullable = false, length = 50, unique = true)
     private String employeeId;
     ///---------------------------------------------------------------------------------------
 
@@ -65,21 +68,26 @@ public class Employee {
     @Column(nullable = false, length = 50)
     private EmployeeStatus employeeStatus = EmployeeStatus.ACTIVE;
 
-    ///---------- Local Time Setup ------------
+    ///---------- Local Time Setup / Audit Information ------------
 
     @CreationTimestamp
     @Column(updatable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime updatedAt;
 
 
-    ///---------- Account Deactivations ----------
+
+    ///---------- Account Deactivations / Deactivation Information ----------
 
     @Column(length = 255)
     private String deactivationReason;
 
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime deactivatedAt;
+
 
 }
