@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 ///==================== Global Exception Handler ====================///
-// Handles exceptions for all REST controllers in one place
+// Handles exceptions for all REST controllers
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -14,8 +14,6 @@ public class GlobalExceptionHandler {
     ///==================== Employee Exceptions ====================///
 
     ///---------- Handle Employee Not Found ----------
-    // Example: update, activate, or deactivate a non-existing employee
-    // Returns HTTP 404 NOT FOUND
     @ExceptionHandler(EmployeeNotFoundException.class)
     public ResponseEntity<String> handleEmployeeNotFoundException(EmployeeNotFoundException exception) {
 
@@ -25,8 +23,6 @@ public class GlobalExceptionHandler {
 
 
     ///---------- Handle Duplicate Employee Data ----------
-    // Example: duplicate Employee ID or duplicate email
-    // Returns HTTP 409 CONFLICT
     @ExceptionHandler(DuplicateEmployeeException.class)
     public ResponseEntity<String> handleDuplicateEmployeeException(DuplicateEmployeeException exception) {
 
@@ -38,8 +34,6 @@ public class GlobalExceptionHandler {
     ///==================== Contribution Exceptions ====================///
 
     ///---------- Handle Contribution Not Found ----------
-    // Example: updating or retrieving a non-existing contribution
-    // Returns HTTP 404 NOT FOUND
     @ExceptionHandler(ContributionNotFoundException.class)
     public ResponseEntity<String> handleContributionNotFoundException(ContributionNotFoundException exception) {
 
@@ -49,8 +43,6 @@ public class GlobalExceptionHandler {
 
 
     ///---------- Handle Duplicate Contribution Data ----------
-    // Example: same employee already has a contribution for the same month
-    // Returns HTTP 409 CONFLICT
     @ExceptionHandler(DuplicateContributionException.class)
     public ResponseEntity<String> handleDuplicateContributionException(DuplicateContributionException exception) {
 
@@ -62,8 +54,6 @@ public class GlobalExceptionHandler {
     ///==================== Loan Exceptions ====================///
 
     ///---------- Handle Loan Not Found ----------
-    // Example: retrieving or updating a non-existing loan
-    // Returns HTTP 404 NOT FOUND
     @ExceptionHandler(LoanNotFoundException.class)
     public ResponseEntity<String> handleLoanNotFoundException(LoanNotFoundException exception) {
 
@@ -73,8 +63,6 @@ public class GlobalExceptionHandler {
 
 
     ///---------- Handle Duplicate Loan Data ----------
-    // Example: duplicate Loan Application ID
-    // Returns HTTP 409 CONFLICT
     @ExceptionHandler(DuplicateLoanException.class)
     public ResponseEntity<String> handleDuplicateLoanException(DuplicateLoanException exception) {
 
@@ -83,11 +71,40 @@ public class GlobalExceptionHandler {
     }
 
 
+    ///==================== Loan Extension Exceptions ====================///
+
+    ///---------- Handle Loan Extension Not Found ----------
+    @ExceptionHandler(LoanExtensionNotFoundException.class)
+    public ResponseEntity<String> handleLoanExtensionNotFoundException(LoanExtensionNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+
+    }
+
+
+    ///---------- Handle Duplicate Loan Extension ----------
+    @ExceptionHandler(DuplicateLoanExtensionException.class)
+    public ResponseEntity<String> handleDuplicateLoanExtensionException(DuplicateLoanExtensionException exception) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+
+    }
+
+
+    ///==================== Loan Disbursement Exceptions ====================///
+
+    ///---------- Handle Loan Disbursement Not Found ----------
+    @ExceptionHandler(LoanDisbursementNotFoundException.class)
+    public ResponseEntity<String> handleLoanDisbursementNotFoundException(LoanDisbursementNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+
+    }
+
+
     ///==================== General Exceptions ====================///
 
-    ///---------- Handle Requests That Conflict With The Current Resource Status ----------
-    // Example: updating a non-DRAFT loan or approving a non-eligible loan
-    // Returns HTTP 409 CONFLICT
+    ///---------- Handle Invalid Lifecycle Or State Transitions ----------
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<String> handleIllegalStateException(IllegalStateException exception) {
 
@@ -97,36 +114,10 @@ public class GlobalExceptionHandler {
 
 
     ///---------- Handle Invalid Business Arguments ----------
-    // Example: invalid payment date, approved amount, or interest rate
-    // Returns HTTP 400 BAD REQUEST
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException exception) {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
-
-    }
-
-
-    //==================== Loan Extension Exceptions ====================//
-
-    // Handle Loan Extension Not Found
-    // Example: retrieving, updating, approving, rejecting, or cancelling a non-existing extension
-    // Returns HTTP 404 NOT FOUND
-    @ExceptionHandler(LoanExtensionNotFoundException.class)
-    public ResponseEntity<String> handleLoanExtensionNotFoundException(LoanExtensionNotFoundException exception) {
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-
-    }
-
-
-    // Handle Duplicate Loan Extension
-    // Example: a loan already has a pending extension request
-    // Returns HTTP 409 CONFLICT
-    @ExceptionHandler(DuplicateLoanExtensionException.class)
-    public ResponseEntity<String> handleDuplicateLoanExtensionException(DuplicateLoanExtensionException exception) {
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
 
     }
 }
