@@ -1,12 +1,15 @@
 package com.fundaxis.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,9 +22,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(
         name = "contributions",
-
-        // The combination of employee_id + contribution_month must be unique (One employee + one month = one contribution)
         uniqueConstraints = {
+
+                // One employee can have only one contribution per month
+                // The combination of employee_id + contribution_month must be unique (One employee + one month = one contribution)
                 @UniqueConstraint(
                         name = "uk_contribution_employee_month",
                         columnNames = {"employee_id", "contribution_month"}
@@ -51,41 +55,48 @@ public class Contribution {
 
 
     // Contribution amount
+    @NotNull(message = "Contribution amount is required")
+    @DecimalMin(value = "0.01", message = "Contribution amount must be greater than zero")
     @Column(name = "contribution_amount", nullable = false, precision = 20, scale = 2)
     private BigDecimal contributionAmount;
 
     // Contribution Month
-    // Example: 2026-09-01 represents September 2026
+    // Example: 01/09/2026 represents September 2026
     // One employee can have only one contribution per month
+    @NotNull(message = "Contribution month is required")
     @Column(name = "contribution_month", nullable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate contributionMonth;
 
 
     // Actual Payment Date
     // Null while contribution is PENDING
     @Column(name = "payment_date")
+    @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate paymentDate;
 
     /// ---------- Contribution Status ----------
 
     public enum ContributionStatus {
-        PAID,
         PENDING,
+        PAID,
         CANCELED
     }
 
     @Enumerated(EnumType.STRING)
     @Column(name = "contribution_status", nullable = false, length = 20)
-    private ContributionStatus contributionStatus = ContributionStatus.PAID;
+    private ContributionStatus contributionStatus = ContributionStatus.PENDING;
 
     /// ---------- Audit Information ----------
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated-at")
+    @Column(name = "updated_at")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime updatedAt;
 
 }
