@@ -29,9 +29,9 @@ public class RepaymentScheduleService {
     }
 
 
-    ///==================== Create Repayment Schedule ====================///
+    ///==================== Create LoanRepayment Schedule ====================///
 
-    ///---------- Create A Repayment Schedule Installment For A Loan ----------
+    ///---------- Create A LoanRepayment Schedule Installment For A Loan ----------
     @Transactional
     public RepaymentSchedule createRepaymentSchedule(Long loanId, RepaymentSchedule repaymentSchedule) {
 
@@ -67,9 +67,9 @@ public class RepaymentScheduleService {
     }
 
 
-    ///==================== Read Repayment Schedule ====================///
+    ///==================== Read LoanRepayment Schedule ====================///
 
-    ///---------- Get All Repayment Schedules ----------
+    ///---------- Get All LoanRepayment Schedules ----------
     public List<RepaymentSchedule> getAllRepaymentSchedulesList() {
 
         return repaymentScheduleRepository.findAll();
@@ -77,15 +77,15 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Repayment Schedule By Database ID (id) ----------
+    ///---------- Get LoanRepayment Schedule By Database ID (id) ----------
     public RepaymentSchedule getRepaymentScheduleById(Long id) {
 
-        return repaymentScheduleRepository.findById(id).orElseThrow(() -> new RepaymentScheduleNotFoundException("Repayment schedule not found with ID: " + id));
+        return repaymentScheduleRepository.findById(id).orElseThrow(() -> new RepaymentScheduleNotFoundException("LoanRepayment schedule not found with ID: " + id));
 
     }
 
 
-    ///---------- Get All Repayment Schedules For A Loan ----------
+    ///---------- Get All LoanRepayment Schedules For A Loan ----------
     public List<RepaymentSchedule> getRepaymentSchedulesListByLoanId(Long loanId) {
 
         return repaymentScheduleRepository.findByLoanIdOrderByInstallmentNumberAsc(loanId);
@@ -101,7 +101,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Repayment Schedules By Installment Status ----------
+    ///---------- Get LoanRepayment Schedules By Installment Status ----------
     public List<RepaymentSchedule> getRepaymentSchedulesListByStatus(RepaymentSchedule.InstallmentStatus installmentStatus) {
 
         return repaymentScheduleRepository.findByInstallmentStatusOrderByDueDateAsc(installmentStatus);
@@ -109,7 +109,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Repayment Schedules For A Loan By Installment Status ----------
+    ///---------- Get LoanRepayment Schedules For A Loan By Installment Status ----------
     public List<RepaymentSchedule> getLoanRepaymentSchedulesListByStatus(Long loanId, RepaymentSchedule.InstallmentStatus installmentStatus) {
 
         return repaymentScheduleRepository.findByLoanIdAndInstallmentStatusOrderByInstallmentNumberAsc(loanId, installmentStatus);
@@ -117,7 +117,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Repayment Schedules With A Specific Due Date ----------
+    ///---------- Get LoanRepayment Schedules With A Specific Due Date ----------
     public List<RepaymentSchedule> getRepaymentSchedulesListByDueDate(LocalDate dueDate) {
 
         return repaymentScheduleRepository.findByDueDateOrderByInstallmentNumberAsc(dueDate);
@@ -125,7 +125,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Repayment Schedules Due Before A Specific Date ----------
+    ///---------- Get LoanRepayment Schedules Due Before A Specific Date ----------
     public List<RepaymentSchedule> getRepaymentSchedulesBeforeDate(LocalDate date) {
 
         return repaymentScheduleRepository.findByDueDateBeforeOrderByDueDateAsc(date);
@@ -133,7 +133,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Repayment Schedules Already Marked As OVERDUE Before A Date ----------
+    ///---------- Get LoanRepayment Schedules Already Marked As OVERDUE Before A Date ----------
     public List<RepaymentSchedule> getOverdueRepaymentSchedulesList(LocalDate date) {
 
         return repaymentScheduleRepository.findByDueDateBeforeAndInstallmentStatusOrderByDueDateAsc(date, RepaymentSchedule.InstallmentStatus.OVERDUE);
@@ -141,7 +141,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get All Repayment Schedules Belonging To An Employee ----------
+    ///---------- Get All LoanRepayment Schedules Belonging To An Employee ----------
     public List<RepaymentSchedule> getEmployeeRepaymentSchedulesList(String employeeId) {
 
         return repaymentScheduleRepository.findByLoanEmployeeEmployeeIdOrderByDueDateAsc(employeeId);
@@ -149,7 +149,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Get Employee Repayment Schedules By Installment Status ----------
+    ///---------- Get Employee LoanRepayment Schedules By Installment Status ----------
     public List<RepaymentSchedule> getEmployeeRepaymentSchedulesListByStatus(String employeeId, RepaymentSchedule.InstallmentStatus installmentStatus) {
 
         return repaymentScheduleRepository.findByLoanEmployeeEmployeeIdAndInstallmentStatusOrderByDueDateAsc(employeeId, installmentStatus);
@@ -157,9 +157,9 @@ public class RepaymentScheduleService {
     }
 
 
-    ///==================== Update Repayment Schedule ====================///
+    ///==================== Update LoanRepayment Schedule ====================///
 
-    ///---------- Update An Unpaid PENDING Repayment Schedule ----------
+    ///---------- Update An Unpaid PENDING LoanRepayment Schedule ----------
     @Transactional
     public RepaymentSchedule updateRepaymentSchedule(Long id, RepaymentSchedule updatedSchedule) {
 
@@ -192,7 +192,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///==================== Repayment Schedule Workflow ====================///
+    ///==================== LoanRepayment Schedule Workflow ====================///
 
     ///---------- Mark An Unpaid Installment As OVERDUE ----------
     @Transactional
@@ -237,7 +237,7 @@ public class RepaymentScheduleService {
     }
 
 
-    ///---------- Cancel A PENDING Repayment Schedule ----------
+    ///---------- Cancel A PENDING LoanRepayment Schedule ----------
     @Transactional
     public RepaymentSchedule cancelRepaymentSchedule(Long id) {
 
@@ -249,9 +249,9 @@ public class RepaymentScheduleService {
 
         }
 
-        // Repayment schedules with recorded payments cannot be cancelled
+        // LoanRepayment schedules with recorded payments cannot be cancelled
         if (schedule.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
-            throw new IllegalStateException("Repayment schedule with recorded payments cannot be cancelled: " + id);
+            throw new IllegalStateException("LoanRepayment schedule with recorded payments cannot be cancelled: " + id);
 
         }
 
