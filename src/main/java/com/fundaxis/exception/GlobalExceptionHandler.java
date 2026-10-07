@@ -120,4 +120,26 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
 
     }
+
+
+    //==================== Repayment Schedule Exceptions ====================//
+
+    // Handle Repayment Schedule Not Found
+    @ExceptionHandler(RepaymentScheduleNotFoundException.class)
+    public ResponseEntity<String> handleRepaymentScheduleNotFoundException(RepaymentScheduleNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+
+    }
+
+
+    // Handle Duplicate Repayment Schedule
+    @ExceptionHandler(DuplicateRepaymentScheduleException.class)
+    public ResponseEntity<String> handleDuplicateRepaymentScheduleException(DuplicateRepaymentScheduleException exception) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+
+    }
+
+
 }
