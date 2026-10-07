@@ -30,7 +30,7 @@ public class RepaymentSchedule {
     private Long id;
 
 
-    ///---------- Many Repayment Schedule Records Can Belong To One Loan ----------
+    ///---------- Many LoanRepayment Schedule Records Can Belong To One Loan ----------
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "loan_id", nullable = false, foreignKey = @ForeignKey(name = "fk_repayment_schedule_loan"))
     private Loan loan;
@@ -84,7 +84,7 @@ public class RepaymentSchedule {
     private BigDecimal remainingAmount = BigDecimal.ZERO;
 
 
-    ///---------- Current Repayment State Of The Installment ----------
+    ///---------- Current LoanRepayment State Of The Installment ----------
     public enum InstallmentStatus {
         PENDING,
         PARTIAL,
