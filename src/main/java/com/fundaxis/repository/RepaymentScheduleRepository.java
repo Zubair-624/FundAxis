@@ -12,9 +12,9 @@ import java.util.Optional;
 public interface RepaymentScheduleRepository extends JpaRepository<RepaymentSchedule, Long> {
 
 
-    ///==================== Read Repayment Schedule ====================///
+    ///==================== Read LoanRepayment Schedule ====================///
 
-    ///---------- Get All Repayment Schedules For A Specific Loan ----------
+    ///---------- Get All LoanRepayment Schedules For A Specific Loan ----------
     List<RepaymentSchedule> findByLoanIdOrderByInstallmentNumberAsc(Long loanId);
 
 
@@ -22,35 +22,35 @@ public interface RepaymentScheduleRepository extends JpaRepository<RepaymentSche
     Optional<RepaymentSchedule> findByLoanIdAndInstallmentNumber(Long loanId, Integer installmentNumber);
 
 
-    ///---------- Get Repayment Schedules With A Specific Installment Status ----------
+    ///---------- Get LoanRepayment Schedules With A Specific Installment Status ----------
     List<RepaymentSchedule> findByInstallmentStatusOrderByDueDateAsc(RepaymentSchedule.InstallmentStatus installmentStatus);
 
 
-    ///---------- Get Repayment Schedules For A Loan With A Specific Status ----------
+    ///---------- Get LoanRepayment Schedules For A Loan With A Specific Status ----------
     List<RepaymentSchedule> findByLoanIdAndInstallmentStatusOrderByInstallmentNumberAsc(Long loanId, RepaymentSchedule.InstallmentStatus installmentStatus);
 
 
-    ///---------- Get Repayment Schedules With A Specific Due Date ----------
+    ///---------- Get LoanRepayment Schedules With A Specific Due Date ----------
     List<RepaymentSchedule> findByDueDateOrderByInstallmentNumberAsc(LocalDate dueDate);
 
 
-    ///---------- Get Repayment Schedules Due Before A Specific Date ----------
+    ///---------- Get LoanRepayment Schedules Due Before A Specific Date ----------
     List<RepaymentSchedule> findByDueDateBeforeOrderByDueDateAsc(LocalDate date);
 
 
-    ///---------- Get Overdue Repayment Schedules Before A Specific Date ----------
+    ///---------- Get Overdue LoanRepayment Schedules Before A Specific Date ----------
     List<RepaymentSchedule> findByDueDateBeforeAndInstallmentStatusOrderByDueDateAsc(LocalDate date, RepaymentSchedule.InstallmentStatus installmentStatus);
 
 
-    ///---------- Get All Repayment Schedules Belonging To An Employee's Loans ----------
+    ///---------- Get All LoanRepayment Schedules Belonging To An Employee's Loans ----------
     List<RepaymentSchedule> findByLoanEmployeeEmployeeIdOrderByDueDateAsc(String employeeId);
 
 
-    ///---------- Get An Employee's Repayment Schedules With A Specific Status ----------
+    ///---------- Get An Employee's LoanRepayment Schedules With A Specific Status ----------
     List<RepaymentSchedule> findByLoanEmployeeEmployeeIdAndInstallmentStatusOrderByDueDateAsc(String employeeId, RepaymentSchedule.InstallmentStatus installmentStatus);
 
 
-    ///==================== Check Repayment Schedule ====================///
+    ///==================== Check LoanRepayment Schedule ====================///
 
     ///---------- Check Whether The Loan Already Has The Given Installment Number ----------
     boolean existsByLoanIdAndInstallmentNumber(Long loanId, Integer installmentNumber);
