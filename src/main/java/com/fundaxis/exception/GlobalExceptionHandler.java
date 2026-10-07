@@ -122,9 +122,9 @@ public class GlobalExceptionHandler {
     }
 
 
-    //==================== Repayment Schedule Exceptions ====================//
+    //==================== LoanRepayment Schedule Exceptions ====================//
 
-    // Handle Repayment Schedule Not Found
+    // Handle LoanRepayment Schedule Not Found
     @ExceptionHandler(RepaymentScheduleNotFoundException.class)
     public ResponseEntity<String> handleRepaymentScheduleNotFoundException(RepaymentScheduleNotFoundException exception) {
 
@@ -133,9 +133,29 @@ public class GlobalExceptionHandler {
     }
 
 
-    // Handle Duplicate Repayment Schedule
+    // Handle Duplicate LoanRepayment Schedule
     @ExceptionHandler(DuplicateRepaymentScheduleException.class)
     public ResponseEntity<String> handleDuplicateRepaymentScheduleException(DuplicateRepaymentScheduleException exception) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+
+    }
+
+
+    //==================== Loan Repayment Exceptions ====================//
+
+    // Handle Loan Repayment Not Found
+    @ExceptionHandler(LoanRepaymentNotFoundException.class)
+    public ResponseEntity<String> handleLoanRepaymentNotFoundException(LoanRepaymentNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+
+    }
+
+
+    // Handle Duplicate Loan Repayment
+    @ExceptionHandler(DuplicateLoanRepaymentException.class)
+    public ResponseEntity<String> handleDuplicateLoanRepaymentException(DuplicateLoanRepaymentException exception) {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
 
