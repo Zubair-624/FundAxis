@@ -48,3 +48,7 @@ application-local.properties
 
 ### VS Code ###
 .vscode/
+
+
+### http/ ###
+*.http
