@@ -24,9 +24,9 @@ public class RepaymentScheduleController {
     }
 
 
-    ///==================== Create Repayment Schedule ====================///
+    ///==================== Create LoanRepayment Schedule ====================///
 
-    ///---------- Create A Repayment Schedule Installment For A Loan ----------
+    ///---------- Create A LoanRepayment Schedule Installment For A Loan ----------
     @PostMapping("/loan/{loanId}")
     public ResponseEntity<RepaymentSchedule> createRepaymentSchedule(@PathVariable Long loanId, @Valid @RequestBody RepaymentSchedule repaymentSchedule) {
 
@@ -37,9 +37,9 @@ public class RepaymentScheduleController {
     }
 
 
-    ///==================== Read Repayment Schedule ====================///
+    ///==================== Read LoanRepayment Schedule ====================///
 
-    ///---------- Get All Repayment Schedules ----------
+    ///---------- Get All LoanRepayment Schedules ----------
     @GetMapping
     public ResponseEntity<List<RepaymentSchedule>> getAllRepaymentSchedulesList() {
 
@@ -48,7 +48,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Repayment Schedule By Database ID (id) ----------
+    ///---------- Get LoanRepayment Schedule By Database ID (id) ----------
     @GetMapping("/id/{id}")
     public ResponseEntity<RepaymentSchedule> getRepaymentScheduleById(@PathVariable Long id) {
 
@@ -57,7 +57,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get All Repayment Schedules For A Loan ----------
+    ///---------- Get All LoanRepayment Schedules For A Loan ----------
     @GetMapping("/loan/{loanId}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesListByLoanId(@PathVariable Long loanId) {
 
@@ -75,7 +75,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Repayment Schedules By Installment Status ----------
+    ///---------- Get LoanRepayment Schedules By Installment Status ----------
     @GetMapping("/status/{installmentStatus}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesListByStatus(@PathVariable RepaymentSchedule.InstallmentStatus installmentStatus) {
 
@@ -84,7 +84,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Repayment Schedules For A Loan By Installment Status ----------
+    ///---------- Get LoanRepayment Schedules For A Loan By Installment Status ----------
     @GetMapping("/loan/{loanId}/status/{installmentStatus}")
     public ResponseEntity<List<RepaymentSchedule>> getLoanRepaymentSchedulesListByStatus(@PathVariable Long loanId, @PathVariable RepaymentSchedule.InstallmentStatus installmentStatus) {
 
@@ -93,7 +93,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Repayment Schedules With A Specific Due Date ----------
+    ///---------- Get LoanRepayment Schedules With A Specific Due Date ----------
     @GetMapping("/due-date/{dueDate}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesListByDueDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
 
@@ -102,7 +102,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Repayment Schedules Due Before A Specific Date ----------
+    ///---------- Get LoanRepayment Schedules Due Before A Specific Date ----------
     @GetMapping("/due-before/{date}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesBeforeDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
@@ -111,7 +111,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Repayment Schedules Already Marked As OVERDUE ----------
+    ///---------- Get LoanRepayment Schedules Already Marked As OVERDUE ----------
     @GetMapping("/overdue")
     public ResponseEntity<List<RepaymentSchedule>> getOverdueRepaymentSchedulesList() {
 
@@ -120,7 +120,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get All Repayment Schedules Belonging To An Employee ----------
+    ///---------- Get All LoanRepayment Schedules Belonging To An Employee ----------
     @GetMapping("/employee/{employeeId}")
     public ResponseEntity<List<RepaymentSchedule>> getEmployeeRepaymentSchedulesList(@PathVariable String employeeId) {
 
@@ -129,7 +129,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Get Employee Repayment Schedules By Installment Status ----------
+    ///---------- Get Employee LoanRepayment Schedules By Installment Status ----------
     @GetMapping("/employee/{employeeId}/status/{installmentStatus}")
     public ResponseEntity<List<RepaymentSchedule>> getEmployeeRepaymentSchedulesListByStatus(@PathVariable String employeeId, @PathVariable RepaymentSchedule.InstallmentStatus installmentStatus) {
 
@@ -138,9 +138,9 @@ public class RepaymentScheduleController {
     }
 
 
-    ///==================== Update Repayment Schedule ====================///
+    ///==================== Update LoanRepayment Schedule ====================///
 
-    ///---------- Update A PENDING Repayment Schedule ----------
+    ///---------- Update A PENDING LoanRepayment Schedule ----------
     @PutMapping("/{id}")
     public ResponseEntity<RepaymentSchedule> updateRepaymentSchedule(@PathVariable Long id, @Valid @RequestBody RepaymentSchedule repaymentSchedule) {
 
@@ -151,7 +151,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///==================== Repayment Schedule Workflow ====================///
+    ///==================== LoanRepayment Schedule Workflow ====================///
 
     ///---------- Mark An Unpaid Installment As OVERDUE ----------
     @PatchMapping("/{id}/overdue")
@@ -164,7 +164,7 @@ public class RepaymentScheduleController {
     }
 
 
-    ///---------- Cancel A PENDING Repayment Schedule ----------
+    ///---------- Cancel A PENDING LoanRepayment Schedule ----------
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<RepaymentSchedule> cancelRepaymentSchedule(@PathVariable Long id) {
 
