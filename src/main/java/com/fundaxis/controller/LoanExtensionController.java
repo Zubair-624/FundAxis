@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class LoanExtensionController {
     ///==================== Create Loan Extension ====================///
 
     ///---------- Create A New Extension Request For A Loan ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/loan/{loanId}")
     public ResponseEntity<LoanExtension> createExtensionRequest(@PathVariable Long loanId, @Valid @RequestBody LoanExtension loanExtension) {
 
@@ -37,6 +39,7 @@ public class LoanExtensionController {
     ///==================== Read Loan Extension ====================///
 
     ///---------- Get All Extension Requests ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping
     public ResponseEntity<List<LoanExtension>> getAllExtensions() {
 
@@ -46,6 +49,7 @@ public class LoanExtensionController {
 
 
     ///---------- Get Extension Request By Database ID (id) ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/id/{id}")
     public ResponseEntity<LoanExtension> getExtensionById(@PathVariable Long id) {
 
@@ -57,6 +61,7 @@ public class LoanExtensionController {
 
 
     ///---------- Get All Extension Requests For A Specific Loan ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/loan/{loanId}")
     public ResponseEntity<List<LoanExtension>> getExtensionsByLoanId(@PathVariable Long loanId) {
 
@@ -66,6 +71,7 @@ public class LoanExtensionController {
 
 
     ///---------- Get Extension Requests By Status ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/status/{extensionStatus}")
     public ResponseEntity<List<LoanExtension>> getExtensionsByStatus(@PathVariable LoanExtension.ExtensionStatus extensionStatus) {
 
@@ -75,6 +81,7 @@ public class LoanExtensionController {
 
 
     ///---------- Get All Extension Requests For An Employee's Loans ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/employee/{employeeId}")
     public ResponseEntity<List<LoanExtension>> getEmployeeExtensions(@PathVariable String employeeId) {
 
@@ -84,6 +91,7 @@ public class LoanExtensionController {
 
 
     ///---------- Get An Employee's Extension Requests By Status ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/employee/{employeeId}/status/{extensionStatus}")
     public ResponseEntity<List<LoanExtension>> getEmployeeExtensionsByStatus(@PathVariable String employeeId, @PathVariable LoanExtension.ExtensionStatus extensionStatus) {
 
@@ -95,6 +103,7 @@ public class LoanExtensionController {
     ///==================== Update Loan Extension ====================///
 
     ///---------- Update A Pending Extension Request ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<LoanExtension> updateExtension(@PathVariable Long id, @Valid @RequestBody LoanExtension loanExtension) {
 
@@ -108,6 +117,7 @@ public class LoanExtensionController {
     ///==================== Loan Extension Workflow ====================///
 
     ///---------- Approve A Pending Extension Request ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/approve")
     public ResponseEntity<LoanExtension> approveExtension(@PathVariable Long id, @RequestParam String approvedBy) {
 
@@ -119,6 +129,7 @@ public class LoanExtensionController {
 
 
     ///---------- Reject A Pending Extension Request ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/reject")
     public ResponseEntity<LoanExtension> rejectExtension(@PathVariable Long id, @RequestParam String rejectionReason) {
 
@@ -130,6 +141,7 @@ public class LoanExtensionController {
 
 
     ///---------- Cancel A Pending Extension Request ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<LoanExtension> cancelExtension(@PathVariable Long id) {
 

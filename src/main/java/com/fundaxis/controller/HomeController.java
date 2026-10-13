@@ -7,9 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
 
 
+    // Show the public FundAxis home page
     @GetMapping("/home")
     public String homePage(){
+
         return "home";
+
     }
 
 

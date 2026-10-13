@@ -1,0 +1,966 @@
+/* =========================================================
+   FUNDAXIS LOGIN PAGE
+   Bootstrap + Custom CSS
+   File location: src/main/resources/static/css/login.css
+   Loaded AFTER Bootstrap, so rules here can override Bootstrap styles
+   Brand Color: #024731
+
+   HOW TO READ THIS FILE (top to bottom, same order as the page):
+   Variables -> Global -> Left panel (info) -> Right panel (form) -> Alerts -> Form fields
+   -> Button and spinner -> Support/notice -> Validation -> Responsive rules
+========================================================= */
+
+
+/* =========================================================
+   ROOT VARIABLES
+   Change a color here once and it changes everywhere on the page
+   Use a variable like this: color: var(--primary);
+========================================================= */
+
+:root {
+    /* Main green (brand color), darker version for hover, soft version for backgrounds */
+    --primary: #024731;
+    --primary-dark: #013a29;
+    --primary-soft: #edf6f1;
+
+    --white: #ffffff;
+
+    --background: #f8fbf9;
+    --background-soft: #f3f8f5;
+
+    /* Text colors: dark (headings), medium (body), light (small/secondary text) */
+    --text-dark: #14261f;
+    --text-medium: #455950;
+    --text-light: #718079;
+
+    --border: #d7e3dd;
+    --border-light: #e2ebe6;
+
+    /* Error message colors (red) */
+    --error-background: #fef3f2;
+    --error-border: #fecdca;
+    --error-text: #b42318;
+
+    /* Success message colors (green) */
+    --success-background: #edf8f2;
+    --success-border: #b7e3c9;
+    --success-text: #176b44;
+
+    --shadow: 0 18px 50px rgba(2, 71, 49, 0.08);
+
+    /* Default animation speed for hover effects */
+    --transition: 0.2s ease;
+}
+
+
+/* =========================================================
+   RESET / GLOBAL
+   Base styles that apply to the whole page
+========================================================= */
+
+/* Padding and border are included in an element's width/height (easier layout math) */
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--background);
+    color: var(--text-dark);
+    font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased; /* smoother text on Mac/iOS */
+}
+
+a {
+    text-decoration: none;
+}
+
+/* Default look of every icon (SVG): outline only, no fill, rounded line ends
+   Individual icons set their own width/height below */
+svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor; /* the icon takes the text color of its parent */
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+.login-page {
+    min-height: 100vh; /* at least the full screen height */
+    background: #f8fbf9;
+}
+
+
+/* =========================================================
+   LEFT VISUAL PANEL
+   Information panel on the left half of the screen (hidden on tablets and phones, see RESPONSIVE)
+========================================================= */
+
+.login-visual-panel {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden; /* cuts off the decorative shapes that stick out of the panel */
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #f8fbf9 0%, #edf6f1 100%);
+    border-right: 1px solid rgba(2, 71, 49, 0.06);
+}
+
+
+/* =========================================================
+   DECORATIVE BACKGROUND SHAPES
+   Circles behind the content (pointer-events: none = they never block clicks)
+========================================================= */
+
+.visual-shape {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+/* Big outlined circle, top left */
+.shape-one {
+    width: 460px;
+    height: 460px;
+    top: -210px;
+    left: -170px;
+    border: 1px solid rgba(2, 71, 49, 0.08);
+}
+
+/* Soft green circle, bottom right */
+.shape-two {
+    width: 340px;
+    height: 340px;
+    right: -180px;
+    bottom: -130px;
+    background: rgba(2, 71, 49, 0.035);
+}
+
+/* Small gold circle, top right */
+.shape-three {
+    width: 170px;
+    height: 170px;
+    right: 10%;
+    top: 12%;
+    background: rgba(242, 170, 54, 0.09);
+}
+
+
+/* =========================================================
+   LEFT CONTENT
+   z-index: 2 keeps the text above the decorative shapes
+   margin-left: auto pushes the content toward the center of the screen
+========================================================= */
+
+.login-visual-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 630px;
+    padding: 70px 8%;
+    margin-left: auto;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.fundaxis-logo-link {
+    display: inline-block;
+    margin-bottom: 42px;
+}
+
+.fundaxis-login-logo {
+    width: 145px;
+    max-height: 90px;
+    object-fit: contain;            /* keeps the logo's proportions */
+    object-position: left center;   /* aligns the logo to the left */
+}
+
+
+/* =========================================================
+   SECURITY BADGE
+   Small rounded badge above the heading
+========================================================= */
+
+.visual-security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 9px 14px;
+    border: 1px solid rgba(2, 71, 49, 0.12);
+    border-radius: 999px; /* fully rounded ends */
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.72);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.visual-security-badge svg {
+    width: 17px;
+    height: 17px;
+}
+
+
+/* =========================================================
+   VISUAL HEADING
+   clamp(min, preferred, max) makes the font size scale with the screen width
+========================================================= */
+
+.visual-heading {
+    max-width: 520px;
+    margin: 0 0 22px;
+    color: var(--text-dark);
+    font-size: clamp(3rem, 5vw, 4.7rem);
+    line-height: 1.02;
+    letter-spacing: -0.045em;
+    font-weight: 900;
+}
+
+/* "FundAxis" is shown on its own line in green */
+.visual-heading span {
+    display: block;
+    color: var(--primary);
+}
+
+
+/* =========================================================
+   DESCRIPTION
+========================================================= */
+
+.visual-description {
+    max-width: 515px;
+    margin-bottom: 38px;
+    color: var(--text-light);
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+
+/* =========================================================
+   SECURITY FEATURES
+   Three short points: Secure Login, Role-Based Access, Centralized Records
+========================================================= */
+
+.security-feature-list {
+    display: flex;
+    flex-direction: column; /* stacked vertically */
+    gap: 14px;
+    max-width: 430px;
+}
+
+.security-feature {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 15px;
+    border: 1px solid rgba(2, 71, 49, 0.08);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.64);
+    transition: var(--transition);
+}
+
+/* Hover: the item becomes brighter and moves slightly to the right */
+.security-feature:hover {
+    background: rgba(255, 255, 255, 0.92);
+    transform: translateX(4px);
+}
+
+/* Square behind the icon */
+.security-feature-icon {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0; /* never let the square get squeezed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: var(--primary);
+    background: rgba(2, 71, 49, 0.08);
+}
+
+.security-feature-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Title and subtitle each on their own line */
+.security-feature strong {
+    display: block;
+    color: var(--text-dark);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.security-feature span {
+    display: block;
+    margin-top: 2px;
+    color: var(--text-light);
+    font-size: 0.72rem;
+}
+
+
+/* =========================================================
+   LEFT FOOTER
+   "Employee Fund Management System" label with a green dot
+========================================================= */
+
+.visual-footer-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 42px;
+    color: var(--text-medium);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    display: inline-block;
+    border-radius: 50%;
+    background: #35a56d;
+}
+
+
+/* =========================================================
+   RIGHT PANEL
+   Holds the login card, centered both vertically and horizontally
+========================================================= */
+
+.login-form-panel {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 35px;
+    background: #fbfdfc;
+}
+
+
+/* =========================================================
+   LOGIN CONTAINER
+   Limits the width of the card so it stays readable on wide screens
+========================================================= */
+
+.login-form-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+
+/* =========================================================
+   MOBILE LOGO
+   Hidden on desktop (the left panel already has the logo)
+   Shown on tablets and phones, where the left panel is hidden (see RESPONSIVE)
+========================================================= */
+
+.mobile-logo {
+    display: none;
+    text-align: center;
+    margin-bottom: 26px;
+}
+
+.mobile-logo img {
+    width: 125px;
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   LOGIN CARD
+   The white box that holds the form
+========================================================= */
+
+.login-card {
+    width: 100%;
+    padding: 44px;
+    border: 1px solid var(--border-light);
+    border-radius: 18px;
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+
+/* =========================================================
+   CARD HEADER
+   Small label, "Welcome Back" title, and one line of text
+========================================================= */
+
+.login-card-header {
+    margin-bottom: 28px;
+}
+
+/* Small uppercase label with a green dot ("FUNDAXIS SECURE ACCESS") */
+.secure-access-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+    color: var(--primary);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+}
+
+.secure-access-label span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #38a76f;
+}
+
+.login-card-header h2 {
+    margin: 0 0 8px;
+    color: var(--text-dark);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.login-card-header p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.88rem;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   ALERTS
+   Message boxes above the form: .login-error (wrong password) and .login-success (signed out)
+   They are only in the page when Thymeleaf's th:if says so (?error or ?logout in the URL)
+========================================================= */
+
+/* Shared layout. "border: 1px solid" has no color here: each variant below sets border-color */
+.login-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-bottom: 22px;
+    padding: 12px 13px;
+    border: 1px solid;
+    border-radius: 10px;
+}
+
+.login-error {
+    color: var(--error-text);
+    border-color: var(--error-border);
+    background: var(--error-background);
+}
+
+.login-success {
+    color: var(--success-text);
+    border-color: var(--success-border);
+    background: var(--success-background);
+}
+
+.alert-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.alert-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.alert-content strong {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 0.79rem;
+    font-weight: 700;
+}
+
+.alert-content span {
+    display: block;
+    font-size: 0.75rem;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Overrides Bootstrap's .form-label */
+.form-label {
+    margin-bottom: 7px;
+    color: var(--text-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   INPUT WRAPPER
+   Lets an icon be placed inside the input field
+   "position: relative" is the reference point for the absolutely positioned icon
+========================================================= */
+
+.input-wrapper {
+    position: relative;
+}
+
+/* Icon on the left inside the input
+   top: 50% + translateY(-50%) = exactly centered vertically
+   pointer-events: none = clicking the icon still focuses the input */
+.input-icon {
+    position: absolute;
+    z-index: 2;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    color: #809088;
+    pointer-events: none;
+}
+
+.input-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+
+/* =========================================================
+   INPUT
+   Username and password fields (works together with Bootstrap's .form-control)
+   Left/right padding of 44px leaves room for the icons
+========================================================= */
+
+.login-input {
+    height: 48px;
+    padding: 0 44px;
+    color: var(--text-dark);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.88rem;
+    box-shadow: none !important; /* removes Bootstrap's default focus glow, replaced below */
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.login-input::placeholder {
+    color: #9aa6a0;
+}
+
+.login-input:hover {
+    border-color: #b7c9c0;
+}
+
+/* Focus (the user clicked or tabbed into the field): green border and soft green ring */
+.login-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(2, 71, 49, 0.10) !important;
+}
+
+
+/* =========================================================
+   PASSWORD INPUT
+   Extra space on the right for the show/hide button
+========================================================= */
+
+.password-input {
+    padding-right: 48px;
+}
+
+/* Eye button on the right inside the password field */
+.password-toggle {
+    position: absolute;
+    z-index: 3;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    color: #75857d;
+    background: transparent;
+    transition: var(--transition);
+}
+
+.password-toggle:hover {
+    color: var(--primary);
+    background: rgba(2, 71, 49, 0.06);
+}
+
+/* Outline only when navigating with the keyboard (Tab), not when clicking with the mouse */
+.password-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.password-toggle svg {
+    width: 19px;
+    height: 19px;
+}
+
+
+/* =========================================================
+   LOGIN BUTTON
+   Full-width green "Sign In" button
+========================================================= */
+
+.login-submit-button {
+    width: 100%;
+    height: 48px;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: none;
+    border-radius: 10px;
+    color: var(--white);
+    background: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    box-shadow: 0 10px 24px rgba(2, 71, 49, 0.14);
+    transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+}
+
+/* Hover: darker green and a small lift */
+.login-submit-button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 13px 28px rgba(2, 71, 49, 0.18);
+}
+
+.login-submit-button:focus-visible {
+    outline: 3px solid rgba(2, 71, 49, 0.18);
+    outline-offset: 2px;
+}
+
+/* While the form is being sent, login.js disables the button */
+.login-submit-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.78;
+    transform: none;
+}
+
+
+/* =========================================================
+   LOGIN SPINNER
+   Small spinning circle inside the button
+   Hidden by default, login.js adds the class "loading" to the button while the form is being sent
+========================================================= */
+
+.login-spinner {
+    display: none;
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: var(--white); /* only the top part is solid white, which makes it look like it spins */
+    border-radius: 50%;
+    animation: loginSpin 0.7s linear infinite;
+}
+
+/* Show the spinner when the button has the class "loading" */
+.login-submit-button.loading .login-spinner {
+    display: inline-block;
+}
+
+/* Animation: rotate one full turn */
+@keyframes loginSpin {
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* =========================================================
+   SUPPORT AREA
+   "Need help signing in?" box
+========================================================= */
+
+.login-support {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin-top: 26px;
+    padding: 15px;
+    border-radius: 11px;
+    background: var(--background-soft);
+}
+
+.support-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    color: var(--primary);
+    background: rgba(2, 71, 49, 0.08);
+}
+
+.support-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.login-support strong {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--text-dark);
+    font-size: 0.77rem;
+}
+
+.login-support p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   SECURITY NOTICE
+   "Authorized Access Only" note under a thin divider line
+========================================================= */
+
+.login-security-notice {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #edf2ef;
+}
+
+.security-notice-header {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 5px;
+    color: var(--text-medium);
+}
+
+.security-notice-header svg {
+    width: 16px;
+    height: 16px;
+    color: var(--primary);
+}
+
+.security-notice-header strong {
+    font-size: 0.7rem;
+}
+
+.login-security-notice p {
+    margin: 0;
+    color: #89958f;
+    font-size: 0.66rem;
+    line-height: 1.55;
+}
+
+
+/* =========================================================
+   CONNECTION CHIP
+   Small "Secure Connection" pill with a green dot
+========================================================= */
+
+.connection-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 15px;
+    padding: 6px 9px;
+    color: var(--primary);
+    background: rgba(2, 71, 49, 0.06);
+    border-radius: 999px;
+    font-size: 0.64rem;
+    font-weight: 700;
+}
+
+.connection-status span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #36a56d;
+}
+
+
+/* =========================================================
+   RETURN HOME
+   "Back to FundAxis" link under the card (the gap grows on hover, so the arrow moves)
+========================================================= */
+
+.return-home {
+    margin-top: 22px;
+    text-align: center;
+}
+
+.return-home a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-light);
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.return-home a:hover {
+    color: var(--primary);
+    gap: 10px;
+}
+
+
+/* =========================================================
+   VALIDATION
+   login.js adds the class "invalid" to an input that is empty or wrong: red border and red ring
+========================================================= */
+
+.login-input.invalid {
+    border-color: var(--error-text);
+    box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.08) !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   Rules for smaller screens (the numbers match Bootstrap's breakpoints)
+   Each block applies to its size AND everything smaller, so they build on each other
+========================================================= */
+
+/* ---------- Tablet / small desktop (below 1200px): a bit less padding and a smaller heading ---------- */
+@media (max-width: 1199.98px) {
+
+    .login-visual-content {
+        padding-left: 7%;
+        padding-right: 7%;
+    }
+
+    .visual-heading {
+        font-size: clamp(2.8rem, 4.8vw, 4rem);
+    }
+
+    .login-card {
+        padding: 38px;
+    }
+
+}
+
+
+/* ---------- Tablets and phones (below 992px, Bootstrap "lg") ----------
+   The left panel is hidden, so only the login form is shown, with the logo above the card */
+@media (max-width: 991.98px) {
+
+    .login-visual-panel {
+        min-height: auto;
+        display: none;
+    }
+
+    .login-form-panel {
+        min-height: 100vh;
+        padding: 42px 24px;
+        background: linear-gradient(135deg, #f8fbf9 0%, #edf6f1 100%);
+    }
+
+    /* Show the logo that is normally hidden */
+    .mobile-logo {
+        display: block;
+    }
+
+    .login-form-container {
+        max-width: 470px;
+    }
+
+}
+
+
+/* ---------- Phones (below 576px, Bootstrap "sm"): smaller card, title, and spacing ---------- */
+@media (max-width: 575.98px) {
+
+    .login-form-panel {
+        padding: 28px 20px;
+    }
+
+    .mobile-logo {
+        margin-bottom: 20px;
+    }
+
+    .mobile-logo img {
+        width: 115px;
+    }
+
+    .login-card {
+        padding: 28px 22px;
+        border-radius: 16px;
+    }
+
+    .login-card-header {
+        margin-bottom: 24px;
+    }
+
+    .login-card-header h2 {
+        font-size: 1.7rem;
+    }
+
+    .login-card-header p {
+        font-size: 0.82rem;
+    }
+
+    .secure-access-label {
+        font-size: 0.62rem;
+    }
+
+    .login-support {
+        padding: 13px;
+    }
+
+}
+
+
+/* ---------- Very small phones (360px and below): tightest spacing ---------- */
+@media (max-width: 360px) {
+
+    .login-form-panel {
+        padding: 22px 14px;
+    }
+
+    .login-card {
+        padding: 24px 17px;
+    }
+
+}
+
+
+/* ---------- Accessibility: for users who turned on "reduce motion" in their system settings ----------
+   Animations and transitions are almost switched off for them
+   The spinner still turns once, so a loading state stays visible */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+}

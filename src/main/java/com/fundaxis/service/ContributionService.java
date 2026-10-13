@@ -57,6 +57,14 @@ public class ContributionService {
     }
 
 
+    // Get all contributions belonging to an employee
+    public List<Contribution> getContributionsByEmployeeId(String employeeId) {
+
+        return contributionRepository.findByEmployeeEmployeeId(employeeId);
+
+    }
+
+
     ///---------- Create ----------///
 
     @Transactional

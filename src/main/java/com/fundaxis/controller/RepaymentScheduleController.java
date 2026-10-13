@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,6 +28,7 @@ public class RepaymentScheduleController {
     ///==================== Create LoanRepayment Schedule ====================///
 
     ///---------- Create A LoanRepayment Schedule Installment For A Loan ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/loan/{loanId}")
     public ResponseEntity<RepaymentSchedule> createRepaymentSchedule(@PathVariable Long loanId, @Valid @RequestBody RepaymentSchedule repaymentSchedule) {
 
@@ -40,6 +42,7 @@ public class RepaymentScheduleController {
     ///==================== Read LoanRepayment Schedule ====================///
 
     ///---------- Get All LoanRepayment Schedules ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping
     public ResponseEntity<List<RepaymentSchedule>> getAllRepaymentSchedulesList() {
 
@@ -49,6 +52,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get LoanRepayment Schedule By Database ID (id) ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/id/{id}")
     public ResponseEntity<RepaymentSchedule> getRepaymentScheduleById(@PathVariable Long id) {
 
@@ -58,6 +62,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get All LoanRepayment Schedules For A Loan ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/loan/{loanId}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesListByLoanId(@PathVariable Long loanId) {
 
@@ -67,6 +72,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get A Specific Installment For A Loan ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/loan/{loanId}/installment/{installmentNumber}")
     public ResponseEntity<RepaymentSchedule> getRepaymentScheduleByLoanAndInstallmentNumber(@PathVariable Long loanId, @PathVariable Integer installmentNumber) {
 
@@ -76,6 +82,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get LoanRepayment Schedules By Installment Status ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/status/{installmentStatus}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesListByStatus(@PathVariable RepaymentSchedule.InstallmentStatus installmentStatus) {
 
@@ -85,6 +92,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get LoanRepayment Schedules For A Loan By Installment Status ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/loan/{loanId}/status/{installmentStatus}")
     public ResponseEntity<List<RepaymentSchedule>> getLoanRepaymentSchedulesListByStatus(@PathVariable Long loanId, @PathVariable RepaymentSchedule.InstallmentStatus installmentStatus) {
 
@@ -94,6 +102,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get LoanRepayment Schedules With A Specific Due Date ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/due-date/{dueDate}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesListByDueDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
 
@@ -103,6 +112,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get LoanRepayment Schedules Due Before A Specific Date ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/due-before/{date}")
     public ResponseEntity<List<RepaymentSchedule>> getRepaymentSchedulesBeforeDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
@@ -112,6 +122,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get LoanRepayment Schedules Already Marked As OVERDUE ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/overdue")
     public ResponseEntity<List<RepaymentSchedule>> getOverdueRepaymentSchedulesList() {
 
@@ -121,6 +132,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get All LoanRepayment Schedules Belonging To An Employee ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/employee/{employeeId}")
     public ResponseEntity<List<RepaymentSchedule>> getEmployeeRepaymentSchedulesList(@PathVariable String employeeId) {
 
@@ -130,6 +142,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Get Employee LoanRepayment Schedules By Installment Status ----------
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/employee/{employeeId}/status/{installmentStatus}")
     public ResponseEntity<List<RepaymentSchedule>> getEmployeeRepaymentSchedulesListByStatus(@PathVariable String employeeId, @PathVariable RepaymentSchedule.InstallmentStatus installmentStatus) {
 
@@ -141,6 +154,7 @@ public class RepaymentScheduleController {
     ///==================== Update LoanRepayment Schedule ====================///
 
     ///---------- Update A PENDING LoanRepayment Schedule ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<RepaymentSchedule> updateRepaymentSchedule(@PathVariable Long id, @Valid @RequestBody RepaymentSchedule repaymentSchedule) {
 
@@ -154,6 +168,7 @@ public class RepaymentScheduleController {
     ///==================== LoanRepayment Schedule Workflow ====================///
 
     ///---------- Mark An Unpaid Installment As OVERDUE ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/overdue")
     public ResponseEntity<RepaymentSchedule> markAsOverdue(@PathVariable Long id) {
 
@@ -165,6 +180,7 @@ public class RepaymentScheduleController {
 
 
     ///---------- Cancel A PENDING LoanRepayment Schedule ----------
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<RepaymentSchedule> cancelRepaymentSchedule(@PathVariable Long id) {
 
