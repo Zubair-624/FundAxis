@@ -1,466 +1,74 @@
-// =========================================================
-// FUNDAXIS - HOME PAGE JAVASCRIPT
-// =========================================================
+/* ==========================================================
+   FundAxis - Home page interactions (plain JavaScript)
+   UI only: no authentication, authorization or business logic.
+   ========================================================== */
+(function () {
+    'use strict';
 
+    var navbar = document.querySelector('.fa-navbar');
+    var navCollapse = document.getElementById('mainNav');
+    var navLinks = document.querySelectorAll('.fa-navbar .nav-link');
+    var scrollTopBtn = document.getElementById('scrollTopBtn');
 
-// =========================================================
-// DOM READY
-// =========================================================
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    // Initialize all home page functions
-    handleNavbarScroll();
-    handleBackToTop();
-    handleCurrentYear();
-    handleSmoothNavigation();
-    handleActiveNavigation();
-    handleMobileNavbar();
-    handleRevealAnimation();
-
-});
-
-
-// =========================================================
-// NAVBAR SCROLL EFFECT
-// =========================================================
-
-function handleNavbarScroll() {
-
-    const navbar = document.querySelector(".fundaxis-navbar");
-
-    if (!navbar) {
-        return;
-    }
-
-    function updateNavbar() {
-
-        if (window.scrollY > 40) {
-            navbar.classList.add("navbar-scrolled");
-        } else {
-            navbar.classList.remove("navbar-scrolled");
-        }
-
-    }
-
-    // Run once when page loads
-    updateNavbar();
-
-    // Run whenever user scrolls
-    window.addEventListener("scroll", updateNavbar);
-
-}
-
-
-// =========================================================
-// BACK TO TOP BUTTON
-// =========================================================
-
-function handleBackToTop() {
-
-    const backToTopButton = document.getElementById("backToTop");
-
-    if (!backToTopButton) {
-        return;
-    }
-
-    function toggleBackToTopButton() {
-
-        if (window.scrollY > 450) {
-            backToTopButton.classList.add("show");
-        } else {
-            backToTopButton.classList.remove("show");
-        }
-
-    }
-
-    // Check button visibility on page load
-    toggleBackToTopButton();
-
-    // Check button visibility on scroll
-    window.addEventListener("scroll", toggleBackToTopButton);
-
-    // Scroll smoothly to top
-    backToTopButton.addEventListener("click", function () {
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
+    /* 1. Close the mobile menu after a navigation link is clicked */
+    navLinks.forEach(function (link) {
+        link.addEventListener('click', function () {
+            if (navCollapse && navCollapse.classList.contains('show') && window.bootstrap) {
+                window.bootstrap.Collapse.getOrCreateInstance(navCollapse).hide();
+            }
         });
-
     });
 
-}
+    /* 2. Active navigation state based on the section in view */
+    var sectionIds = ['home', 'about', 'features', 'how-it-works', 'contact'];
+    var sections = sectionIds
+        .map(function (id) { return document.getElementById(id); })
+        .filter(Boolean);
 
-
-// =========================================================
-// CURRENT YEAR
-// =========================================================
-
-function handleCurrentYear() {
-
-    const currentYearElement = document.getElementById("currentYear");
-
-    if (!currentYearElement) {
-        return;
-    }
-
-    const currentYear = new Date().getFullYear();
-
-    currentYearElement.textContent = currentYear;
-
-}
-
-
-// =========================================================
-// SMOOTH NAVIGATION
-// =========================================================
-
-function handleSmoothNavigation() {
-
-    const navigationLinks = document.querySelectorAll('a[href^="#"]');
-
-    navigationLinks.forEach(function (link) {
-
-        link.addEventListener("click", function (event) {
-
-            const targetId = this.getAttribute("href");
-
-            // Ignore empty placeholder links
-            if (
-                !targetId ||
-                targetId === "#" ||
-                targetId === "#!"
-            ) {
-                return;
-            }
-
-            const targetSection = document.querySelector(targetId);
-
-            if (!targetSection) {
-                return;
-            }
-
-            event.preventDefault();
-
-            const navbar = document.querySelector(".fundaxis-navbar");
-
-            let navbarHeight = 0;
-
-            if (navbar) {
-                navbarHeight = navbar.offsetHeight;
-            }
-
-            const sectionPosition =
-                targetSection.getBoundingClientRect().top
-                + window.scrollY
-                - navbarHeight
-                + 1;
-
-            window.scrollTo({
-                top: sectionPosition,
-                behavior: "smooth"
-            });
-
+    function setActive(id) {
+        navLinks.forEach(function (link) {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
         });
-
-    });
-
-}
-
-
-// =========================================================
-// ACTIVE NAVIGATION LINK
-// =========================================================
-
-function handleActiveNavigation() {
-
-    const sections = document.querySelectorAll("section[id], footer[id]");
-
-    const navLinks = document.querySelectorAll(".fundaxis-navbar .nav-link");
-
-    if (
-        sections.length === 0 ||
-        navLinks.length === 0
-    ) {
-        return;
     }
 
-    function updateActiveNavigation() {
-
-        let currentSection = "";
-
-        const scrollPosition = window.scrollY + 160;
+    function updateActiveSection() {
+        var offset = (navbar ? navbar.offsetHeight : 76) + 40;
+        var current = sections.length ? sections[0].id : null;
 
         sections.forEach(function (section) {
-
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.offsetHeight;
-
-            if (
-                scrollPosition >= sectionTop &&
-                scrollPosition < sectionTop + sectionHeight
-            ) {
-                currentSection = section.getAttribute("id");
+            if (section.getBoundingClientRect().top - offset <= 0) {
+                current = section.id;
             }
-
         });
 
-        navLinks.forEach(function (link) {
-
-            link.classList.remove("active");
-
-            const linkTarget = link.getAttribute("href");
-
-            if (
-                currentSection &&
-                linkTarget === "#" + currentSection
-            ) {
-                link.classList.add("active");
-            }
-
-        });
-
-    }
-
-    // Run once on page load
-    updateActiveNavigation();
-
-    // Update active section on scroll
-    window.addEventListener("scroll", updateActiveNavigation);
-
-}
-
-
-// =========================================================
-// MOBILE NAVBAR
-// =========================================================
-
-function handleMobileNavbar() {
-
-    const navbarCollapse = document.getElementById("fundAxisNavbar");
-
-    const navLinks = document.querySelectorAll("#fundAxisNavbar .nav-link");
-
-    if (!navbarCollapse) {
-        return;
-    }
-
-    navLinks.forEach(function (link) {
-
-        link.addEventListener("click", function () {
-
-            // Only close menu on smaller screens
-            if (window.innerWidth < 992) {
-
-                const bootstrapCollapse =
-                    bootstrap.Collapse.getOrCreateInstance(navbarCollapse);
-
-                bootstrapCollapse.hide();
-
-            }
-
-        });
-
-    });
-
-}
-
-
-// =========================================================
-// SCROLL REVEAL ANIMATION
-// =========================================================
-
-function handleRevealAnimation() {
-
-    /*
-     * Elements that will animate when they become visible.
-     *
-     * The CSS already contains:
-     *
-     * .reveal
-     * .reveal.active
-     */
-
-    const revealElements = document.querySelectorAll(
-        `
-        .section-heading,
-        .about-visual,
-        .about-content,
-        .feature-card,
-        .why-heading,
-        .why-card,
-        .process-card,
-        .cta-box
-        `
-    );
-
-    if (revealElements.length === 0) {
-        return;
-    }
-
-    // Add reveal class automatically
-    revealElements.forEach(function (element) {
-        element.classList.add("reveal");
-    });
-
-    // Browser support check
-    if (!("IntersectionObserver" in window)) {
-
-        revealElements.forEach(function (element) {
-            element.classList.add("active");
-        });
-
-        return;
-
-    }
-
-    const observerOptions = {
-        root: null,
-        rootMargin: "0px 0px -70px 0px",
-        threshold: 0.12
-    };
-
-    const revealObserver = new IntersectionObserver(
-        function (entries, observer) {
-
-            entries.forEach(function (entry) {
-
-                if (entry.isIntersecting) {
-
-                    entry.target.classList.add("active");
-
-                    // Animate only once
-                    observer.unobserve(entry.target);
-
-                }
-
-            });
-
-        },
-        observerOptions
-    );
-
-    revealElements.forEach(function (element) {
-        revealObserver.observe(element);
-    });
-
-}
-
-
-// =========================================================
-// DASHBOARD CARD HOVER INTERACTION
-// =========================================================
-
-const dashboardCards = document.querySelectorAll(".mini-stat-card");
-
-dashboardCards.forEach(function (card) {
-
-    card.addEventListener("mouseenter", function () {
-        card.style.transform = "translateY(-4px)";
-    });
-
-    card.addEventListener("mouseleave", function () {
-        card.style.transform = "";
-    });
-
-});
-
-
-// =========================================================
-// HERO BUTTON ARROW INTERACTION
-// =========================================================
-
-const primaryButtons = document.querySelectorAll(".hero-primary-btn");
-
-primaryButtons.forEach(function (button) {
-
-    button.addEventListener("mouseenter", function () {
-
-        const arrow = button.querySelector(".bi-arrow-right");
-
-        if (arrow) {
-            arrow.style.transform = "translateX(5px)";
+        /* Bottom of the page always highlights the last item (Contact) */
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 4) {
+            current = 'contact';
         }
-
-    });
-
-    button.addEventListener("mouseleave", function () {
-
-        const arrow = button.querySelector(".bi-arrow-right");
-
-        if (arrow) {
-            arrow.style.transform = "";
-        }
-
-    });
-
-});
-
-
-// =========================================================
-// FEATURE CARD INTERACTION
-// =========================================================
-
-const featureCards = document.querySelectorAll(".feature-card");
-
-featureCards.forEach(function (card) {
-
-    card.addEventListener("mouseenter", function () {
-
-        const icon = card.querySelector(".feature-icon");
-
-        if (icon) {
-            icon.style.transform = "scale(1.05) rotate(-2deg)";
-        }
-
-    });
-
-    card.addEventListener("mouseleave", function () {
-
-        const icon = card.querySelector(".feature-icon");
-
-        if (icon) {
-            icon.style.transform = "";
-        }
-
-    });
-
-});
-
-
-// =========================================================
-// PREVENT PLACEHOLDER LINKS FROM JUMPING PAGE
-// =========================================================
-
-const placeholderLinks = document.querySelectorAll('a[href="#!"]');
-
-placeholderLinks.forEach(function (link) {
-
-    link.addEventListener("click", function (event) {
-        event.preventDefault();
-    });
-
-});
-
-
-// =========================================================
-// OPTIONAL KEYBOARD ACCESSIBILITY
-// =========================================================
-
-document.addEventListener("keydown", function (event) {
-
-    /*
-     * Pressing "Home" key moves user to top.
-     */
-
-    if (event.key === "Home") {
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-
+        if (current) { setActive(current); }
     }
 
-});
+    /* 3. Navbar shadow + scroll-to-top button visibility */
+    function onScroll() {
+        if (navbar) { navbar.classList.toggle('is-scrolled', window.scrollY > 10); }
+        if (scrollTopBtn) { scrollTopBtn.classList.toggle('show', window.scrollY > 400); }
+        updateActiveSection();
+    }
+
+    if (scrollTopBtn) {
+        scrollTopBtn.addEventListener('click', function () {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+        if (!ticking) {
+            window.requestAnimationFrame(function () { onScroll(); ticking = false; });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    window.addEventListener('resize', updateActiveSection);
+    onScroll();
+})();
