@@ -1,330 +1,784 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>FundAxis | Employee Fund Management System</title>
-    <meta name="description" content="FundAxis is a secure, centralized platform for managing employee contributions, loans, repayments and fund records.">
-    <link rel="icon" type="image/png" href="/images/fundaxis-logo.png" th:href="@{/images/fundaxis-logo.png}">
 
-    <!-- Bootstrap 5 and Bootstrap Icons (CDN) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- FundAxis home page styles -->
-    <link rel="stylesheet" href="/css/home.css" th:href="@{/css/home.css}">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
+
 <body>
 
-<!-- ============ 1. HEADER / NAVBAR ============ -->
-<header>
-    <nav class="navbar navbar-expand-lg fa-navbar fixed-top" aria-label="Main navigation">
-        <div class="container">
-            <a class="navbar-brand fa-brand" href="#home">
-                <img src="/images/fundaxis-logo.png" th:src="@{/images/fundaxis-logo.png}" alt="FundAxis">
-                <span>FundAxis</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
-                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+<!-- =========================================================
+     NAVBAR
+========================================================= -->
+<nav class="navbar navbar-expand-lg fixed-top fundaxis-navbar">
+    <div class="container">
 
-            <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav mx-lg-auto mb-3 mb-lg-0">
-                    <!-- Scroll to top (Home) -->
-                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
-                    <!-- Scroll to About section -->
-                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                    <!-- Scroll to Features section -->
-                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
-                    <!-- Scroll to How It Works section -->
-                    <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
-                    <!-- Scroll to Contact section -->
-                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-                </ul>
+        <!-- Brand / Logo -->
+        <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+            <img th:src="@{/images/fundaxis-logo.png}" src="/images/fundaxis-logo.png" alt="FundAxis Logo" class="navbar-logo">
+            <span class="brand-text">FundAxis</span>
+        </a>
 
-                <!-- Redirect to FundAxis login page -->
-                <!-- Future redirect to Admin dashboard -->
-                <!-- Future redirect to IT Support dashboard -->
-                <!-- Future redirect to User dashboard -->
-                <a class="btn btn-fa" href="/login" th:href="@{/login}">
-                    <i class="bi bi-box-arrow-in-right"></i> Login
-                </a>
+        <!-- Mobile Toggle -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#fundAxisNavbar"
+                aria-controls="fundAxisNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navigation -->
+        <div class="collapse navbar-collapse" id="fundAxisNavbar">
+
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+                <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                <li class="nav-item"><a class="nav-link" href="#how-it-works">How It Works</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+            </ul>
+
+            <!-- Login / Signup -->
+            <div class="d-flex align-items-center gap-2 navbar-actions">
+                <a th:href="@{/login}" class="btn btn-login">Login</a>
+                <a th:href="@{/signup}" class="btn btn-signup">Sign Up</a>
             </div>
+
         </div>
-    </nav>
-</header>
+    </div>
+</nav>
 
-<main>
 
-    <!-- ============ 2. HERO ============ -->
-    <section id="home" class="hero">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6">
-                    <span class="hero-badge"><i class="bi bi-shield-lock-fill"></i> Secure Employee Fund Management</span>
-                    <h1 class="hero-title">Employee Fund<br>Management<br><span>Made Simple.</span></h1>
-                    <p class="hero-text">Manage employee contributions, loans, repayments and fund records from one secure, centralized and organized platform.</p>
+<!-- =========================================================
+     HERO SECTION
+========================================================= -->
+<section id="home" class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100 g-5">
 
-                    <div class="d-flex flex-wrap gap-3 mb-4">
-                        <!-- Redirect to FundAxis login page -->
-                        <a class="btn btn-fa btn-lg" href="/login" th:href="@{/login}">Get Started <i class="bi bi-arrow-right"></i></a>
-                        <!-- Scroll to Features section -->
-                        <a class="btn btn-fa-outline btn-lg" href="#features">Explore Features</a>
+            <!-- Hero Left -->
+            <div class="col-lg-6">
+                <div class="hero-content">
+
+                    <span class="hero-badge">
+                        <i class="bi bi-shield-check"></i>
+                        Secure Employee Fund Management
+                    </span>
+
+                    <h1 class="hero-title">
+                        Employee Fund Management
+                        <span>Made Simple.</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        Manage employee contributions, loans,
+                        repayments and fund records from one secure,
+                        centralized and easy-to-use platform.
+                    </p>
+
+                    <div class="hero-buttons">
+                        <a th:href="@{/login}" class="btn hero-primary-btn">
+                            Get Started
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+
+                        <a href="#features" class="btn hero-secondary-btn">Explore Features</a>
                     </div>
 
-                    <ul class="hero-highlights">
-                        <li><i class="bi bi-shield-check"></i> Secure Access</li>
-                        <li><i class="bi bi-folder-check"></i> Centralized Records</li>
-                        <li><i class="bi bi-graph-up-arrow"></i> Easy Fund Tracking</li>
-                    </ul>
-                </div>
+                    <!-- Small Trust Items -->
+                    <div class="hero-trust">
 
-                <div class="col-lg-6">
-                    <!-- Platform illustration (HTML/CSS only) -->
-                    <div class="platform-visual" aria-hidden="true">
-                        <div class="pv-ring pv-ring--outer"></div>
-                        <div class="pv-ring pv-ring--inner"></div>
-                        <div class="pv-core">
-                            <img src="/images/fundaxis-logo.png" th:src="@{/images/fundaxis-logo.png}" alt="">
-                            <strong>FundAxis</strong>
-                            <small>Fund Platform</small>
+                        <div class="trust-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Secure Access</span>
                         </div>
-                        <div class="pv-node pv-node--tl"><i class="bi bi-people"></i><span>Employees</span></div>
-                        <div class="pv-node pv-node--tr"><i class="bi bi-piggy-bank"></i><span>Contributions</span></div>
-                        <div class="pv-node pv-node--bl"><i class="bi bi-cash-stack"></i><span>Loans</span></div>
-                        <div class="pv-node pv-node--br"><i class="bi bi-arrow-repeat"></i><span>Repayments</span></div>
+
+                        <div class="trust-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Centralized Records</span>
+                        </div>
+
+                        <div class="trust-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Easy Fund Tracking</span>
+                        </div>
+
                     </div>
+
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- ============ 3. ABOUT ============ -->
-    <section id="about" class="section section-soft">
-        <div class="container">
-            <div class="text-center section-head">
-                <span class="eyebrow">About FundAxis</span>
-                <h2 class="section-title">A Smarter Way to Manage<br>Employee Funds</h2>
-                <p class="section-text">FundAxis brings essential employee fund operations together in one secure and organized system.</p>
-            </div>
+            <!-- Hero Right -->
+            <div class="col-lg-6">
+                <div class="hero-dashboard-wrapper">
 
-            <div class="row align-items-center g-5">
-                <div class="col-lg-5">
-                    <div class="system-card">
-                        <div class="system-card__head">
-                            <img src="/images/fundaxis-logo.png" th:src="@{/images/fundaxis-logo.png}" alt="FundAxis">
+                    <div class="dashboard-decoration decoration-one"></div>
+                    <div class="dashboard-decoration decoration-two"></div>
+
+                    <div class="dashboard-preview">
+
+                        <!-- Dashboard Header -->
+                        <div class="dashboard-preview-header">
                             <div>
-                                <h3>FundAxis</h3>
-                                <p>Employee Fund Management System</p>
+                                <span class="dashboard-label">FundAxis</span>
+                                <h3>Fund Management Dashboard</h3>
+                            </div>
+
+                            <div class="dashboard-profile">
+                                <i class="bi bi-person-circle"></i>
                             </div>
                         </div>
-                        <div class="system-card__status">
-                            <span class="status-chip status-chip--ok"><i class="bi bi-check-circle-fill"></i> System Ready</span>
-                            <span class="status-chip"><i class="bi bi-lock-fill"></i> Secure</span>
-                            <span class="status-chip"><i class="bi bi-diagram-3-fill"></i> Organized</span>
+
+                        <!-- Stat Cards -->
+                        <div class="row g-3 dashboard-stats">
+
+                            <div class="col-6">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-icon employee-icon">
+                                        <i class="bi bi-people-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small>Employees</small>
+                                        <h4>120</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-icon contribution-icon">
+                                        <i class="bi bi-wallet2"></i>
+                                    </div>
+                                    <div>
+                                        <small>Contributions</small>
+                                        <h4>৳ 3.8M</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-icon loan-icon">
+                                        <i class="bi bi-cash-stack"></i>
+                                    </div>
+                                    <div>
+                                        <small>Active Loans</small>
+                                        <h4>28</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6">
+                                <div class="mini-stat-card">
+                                    <div class="mini-stat-icon loanRepayment-icon">
+                                        <i class="bi bi-calendar-check-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small>Repayments</small>
+                                        <h4>94%</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Fund Activity -->
+                        <div class="activity-card">
+
+                            <div class="activity-header">
+                                <div>
+                                    <small>Fund Activity</small>
+                                    <h5>Monthly Overview</h5>
+                                </div>
+                                <span>2026</span>
+                            </div>
+
+                            <div class="fake-chart">
+                                <div class="chart-bar" style="height: 40%"></div>
+                                <div class="chart-bar" style="height: 58%"></div>
+                                <div class="chart-bar" style="height: 48%"></div>
+                                <div class="chart-bar" style="height: 75%"></div>
+                                <div class="chart-bar" style="height: 68%"></div>
+                                <div class="chart-bar" style="height: 88%"></div>
+                                <div class="chart-bar active" style="height: 100%"></div>
+                            </div>
+
+                        </div>
+
+                        <!-- Security Footer -->
+                        <div class="dashboard-security">
+                            <div>
+                                <i class="bi bi-shield-lock-fill"></i>
+                                <div>
+                                    <strong>Protected System</strong>
+                                    <span>Authorized access only</span>
+                                </div>
+                            </div>
+
+                            <span class="status-dot">Active</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     ABOUT SECTION
+========================================================= -->
+<section id="about" class="section-padding about-section">
+    <div class="container">
+
+        <div class="section-heading text-center">
+            <span class="section-subtitle">About FundAxis</span>
+            <h2>A Smarter Way to Manage Employee Funds</h2>
+            <p>
+                FundAxis brings employee, contribution, loan and
+                loanRepayment management together in one organized
+                platform.
+            </p>
+        </div>
+
+        <div class="row align-items-center g-5 mt-2">
+
+            <div class="col-lg-6">
+                <div class="about-visual">
+
+                    <div class="about-main-card">
+
+                        <div class="about-logo-wrapper">
+                            <img th:src="@{/images/fundaxis-logo.png}" src="/images/fundaxis-logo.png" alt="FundAxis">
+                        </div>
+
+                        <h3>FundAxis</h3>
+                        <p>Employee Fund Management System</p>
+
+                        <div class="about-system-status">
+                            <span></span>
+                            System Operational
+                        </div>
+
+                    </div>
+
+                    <div class="floating-card floating-card-one">
+                        <i class="bi bi-shield-check"></i>
+                        <div>
+                            <strong>Secure</strong>
+                            <small>Protected data</small>
                         </div>
                     </div>
-                </div>
 
-                <div class="col-lg-7">
-                    <h3 class="sub-title">Everything needed for structured employee fund administration.</h3>
-                    <ul class="check-list">
-                        <li><i class="bi bi-check-circle-fill"></i> Employee Information Management</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Contribution Tracking</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Loan Administration</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Loan Disbursement</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Repayment Scheduling</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Repayment Tracking</li>
-                    </ul>
+                    <div class="floating-card floating-card-two">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        <div>
+                            <strong>Organized</strong>
+                            <small>Better monitoring</small>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+
+            <div class="col-lg-6">
+                <div class="about-content">
+
+                    <h3>Everything your organization needs to manage employee funds.</h3>
+
+                    <p>
+                        FundAxis is designed to simplify fund-related
+                        administrative work by maintaining all
+                        important employee financial information
+                        inside one system.
+                    </p>
+
+                    <p>
+                        Instead of managing contributions, loans and
+                        repayments separately, FundAxis provides a
+                        structured workflow that allows authorized
+                        users to manage and monitor the complete
+                        process.
+                    </p>
+
+                    <div class="about-points">
+
+                        <div class="about-point">
+                            <i class="bi bi-check2"></i>
+                            Employee information management
+                        </div>
+
+                        <div class="about-point">
+                            <i class="bi bi-check2"></i>
+                            Contribution record tracking
+                        </div>
+
+                        <div class="about-point">
+                            <i class="bi bi-check2"></i>
+                            Loan management and disbursement
+                        </div>
+
+                        <div class="about-point">
+                            <i class="bi bi-check2"></i>
+                            Repayment and schedule monitoring
+                        </div>
+
+                    </div>
+
+                    <a href="#features" class="about-link">
+                        Explore system features
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                </div>
+            </div>
+
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- ============ 4. CORE MODULES ============ -->
-    <section id="features" class="section">
-        <div class="container">
-            <div class="text-center section-head">
-                <span class="eyebrow">Core Modules</span>
-                <h2 class="section-title">Complete Fund Management<br>in One Platform</h2>
+
+<!-- =========================================================
+     FEATURES
+========================================================= -->
+<section id="features" class="section-padding features-section">
+    <div class="container">
+
+        <div class="section-heading text-center">
+            <span class="section-subtitle">Core Modules</span>
+            <h2>Everything You Need in One Platform</h2>
+            <p>
+                FundAxis is built around the core operations
+                required for employee fund management.
+            </p>
+        </div>
+
+        <div class="row g-4 mt-3">
+
+            <!-- Employee -->
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-number">01</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h4>Employee Management</h4>
+                    <p>
+                        Create, update, activate and maintain
+                        employee information from one organized
+                        system.
+                    </p>
+                    <a href="#!">
+                        Learn More
+                        <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </div>
             </div>
+
+            <!-- Contribution -->
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-number">02</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-wallet-fill"></i>
+                    </div>
+                    <h4>Contribution Management</h4>
+                    <p>
+                        Record and monitor employee fund
+                        contributions with accurate transaction
+                        history.
+                    </p>
+                    <a href="#!">
+                        Learn More
+                        <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Loan -->
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-number">03</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <h4>Loan Management</h4>
+                    <p>
+                        Manage employee loans, eligibility,
+                        disbursement and loan status efficiently.
+                    </p>
+                    <a href="#!">
+                        Learn More
+                        <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- LoanRepayment -->
+            <div class="col-lg-3 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-number">04</div>
+                    <div class="feature-icon">
+                        <i class="bi bi-calendar2-check-fill"></i>
+                    </div>
+                    <h4>Repayment Management</h4>
+                    <p>
+                        Track loanRepayment schedules, installment
+                        records and payment status in real time.
+                    </p>
+                    <a href="#!">
+                        Learn More
+                        <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     WHY FUNDAXIS
+========================================================= -->
+<section class="section-padding why-section">
+    <div class="container">
+        <div class="row align-items-center g-5">
+
+            <div class="col-lg-5">
+                <div class="why-heading">
+
+                    <span class="section-subtitle">Why FundAxis?</span>
+
+                    <h2>Built for Simple, Reliable Fund Management</h2>
+
+                    <p>
+                        FundAxis reduces manual work and keeps
+                        employee fund operations structured,
+                        transparent and easier to manage.
+                    </p>
+
+                    <a th:href="@{/login}" class="btn hero-primary-btn">
+                        Access FundAxis
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <div class="why-card">
+                            <div class="why-icon">
+                                <i class="bi bi-ui-checks-grid"></i>
+                            </div>
+                            <div>
+                                <h5>Simple Management</h5>
+                                <p>
+                                    Clean workflows for easier
+                                    administrative operations.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="why-card">
+                            <div class="why-icon">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </div>
+                            <div>
+                                <h5>Secure Access</h5>
+                                <p>
+                                    Designed for controlled and
+                                    authorized system access.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="why-card">
+                            <div class="why-icon">
+                                <i class="bi bi-folder2-open"></i>
+                            </div>
+                            <div>
+                                <h5>Organized Records</h5>
+                                <p>
+                                    Keep employee fund information
+                                    properly structured.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="why-card">
+                            <div class="why-icon">
+                                <i class="bi bi-graph-up-arrow"></i>
+                            </div>
+                            <div>
+                                <h5>Easy Tracking</h5>
+                                <p>
+                                    Follow contributions, loans and
+                                    loanRepayment activity easily.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="why-card">
+                            <div class="why-icon">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                            </div>
+                            <div>
+                                <h5>Faster Operations</h5>
+                                <p>
+                                    Reduce repetitive and manual
+                                    fund-management tasks.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="why-card">
+                            <div class="why-icon">
+                                <i class="bi bi-database-fill-check"></i>
+                            </div>
+                            <div>
+                                <h5>Centralized System</h5>
+                                <p>
+                                    Manage all major fund operations
+                                    from one platform.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     HOW IT WORKS
+========================================================= -->
+<section id="how-it-works" class="section-padding process-section">
+    <div class="container">
+
+        <div class="section-heading text-center">
+            <span class="section-subtitle">How It Works</span>
+            <h2>Simple Process. Better Control.</h2>
+            <p>
+                Access FundAxis and manage all important fund
+                operations through a straightforward workflow.
+            </p>
+        </div>
+
+        <div class="process-wrapper">
+
+            <div class="process-line"></div>
 
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
-                    <article class="module-card">
-                        <div class="module-card__top"><span class="module-icon"><i class="bi bi-people"></i></span><span class="module-num">01</span></div>
-                        <h3>Employee Management</h3>
-                        <p>Maintain organized employee records and fund membership details in one place.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <article class="module-card">
-                        <div class="module-card__top"><span class="module-icon"><i class="bi bi-piggy-bank"></i></span><span class="module-num">02</span></div>
-                        <h3>Contribution Management</h3>
-                        <p>Record and track employee contributions with a clear payment history.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <article class="module-card">
-                        <div class="module-card__top"><span class="module-icon"><i class="bi bi-cash-stack"></i></span><span class="module-num">03</span></div>
-                        <h3>Loan Management</h3>
-                        <p>Handle loan eligibility, approvals and rejections through a structured workflow.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <article class="module-card">
-                        <div class="module-card__top"><span class="module-icon"><i class="bi bi-bank"></i></span><span class="module-num">04</span></div>
-                        <h3>Loan Disbursement</h3>
-                        <p>Follow each disbursement from start to completion, failure or cancellation.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <article class="module-card">
-                        <div class="module-card__top"><span class="module-icon"><i class="bi bi-calendar-check"></i></span><span class="module-num">05</span></div>
-                        <h3>Repayment Schedule</h3>
-                        <p>Plan and review repayment schedules for every approved loan.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-lg-4">
-                    <article class="module-card">
-                        <div class="module-card__top"><span class="module-icon"><i class="bi bi-arrow-repeat"></i></span><span class="module-num">06</span></div>
-                        <h3>Repayment Management</h3>
-                        <p>Record repayments and keep loan balances easy to monitor.</p>
-                    </article>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- ============ 5. WHY FUNDAXIS ============ -->
-    <section id="why-fundaxis" class="section section-soft">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-5">
-                    <span class="eyebrow">Why FundAxis?</span>
-                    <h2 class="section-title">Built for Secure and<br>Organized Fund<br>Operations</h2>
-                    <p class="section-text">FundAxis helps reduce manual work while keeping employee fund operations centralized, structured and easier to monitor.</p>
-                    <!-- Redirect to FundAxis login page -->
-                    <a class="btn btn-fa btn-lg mt-2" href="/login" th:href="@{/login}">Access FundAxis <i class="bi bi-arrow-right"></i></a>
-                </div>
-
-                <div class="col-lg-7">
-                    <div class="row g-3">
-                        <div class="col-sm-6"><div class="benefit-card"><i class="bi bi-sliders"></i><span>Simple Management</span></div></div>
-                        <div class="col-sm-6"><div class="benefit-card"><i class="bi bi-shield-lock"></i><span>Secure Access</span></div></div>
-                        <div class="col-sm-6"><div class="benefit-card"><i class="bi bi-folder2-open"></i><span>Organized Records</span></div></div>
-                        <div class="col-sm-6"><div class="benefit-card"><i class="bi bi-search"></i><span>Easy Tracking</span></div></div>
-                        <div class="col-sm-6"><div class="benefit-card"><i class="bi bi-lightning-charge"></i><span>Faster Operations</span></div></div>
-                        <div class="col-sm-6"><div class="benefit-card"><i class="bi bi-diagram-3"></i><span>Centralized System</span></div></div>
+                <!-- Step 1 -->
+                <div class="col-lg-4">
+                    <div class="process-card">
+                        <div class="process-number">01</div>
+                        <div class="process-icon">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                        </div>
+                        <h4>Login Securely</h4>
+                        <p>
+                            Authorized users log into the FundAxis
+                            system using their assigned credentials.
+                        </p>
                     </div>
                 </div>
+
+                <!-- Step 2 -->
+                <div class="col-lg-4">
+                    <div class="process-card">
+                        <div class="process-number">02</div>
+                        <div class="process-icon">
+                            <i class="bi bi-database-gear"></i>
+                        </div>
+                        <h4>Manage Data</h4>
+                        <p>
+                            Manage employees, contributions,
+                            loans, repayments and related records.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="col-lg-4">
+                    <div class="process-card">
+                        <div class="process-number">03</div>
+                        <div class="process-icon">
+                            <i class="bi bi-bar-chart-line-fill"></i>
+                        </div>
+                        <h4>Monitor Funds</h4>
+                        <p>
+                            Track employee fund activity and
+                            monitor financial records efficiently.
+                        </p>
+                    </div>
+                </div>
+
             </div>
         </div>
-    </section>
 
-    <!-- ============ 6. HOW IT WORKS ============ -->
-    <section id="how-it-works" class="section">
-        <div class="container">
-            <div class="text-center section-head">
-                <span class="eyebrow">How It Works</span>
-                <h2 class="section-title">Simple Process.<br>Better Control.</h2>
-            </div>
+    </div>
+</section>
 
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <article class="step-card">
-                        <span class="step-num">01</span>
-                        <h3>Secure Login</h3>
-                        <p>Authorized users sign in to FundAxis through the secure login page.</p>
-                    </article>
-                </div>
-                <div class="col-md-4">
-                    <article class="step-card">
-                        <span class="step-num">02</span>
-                        <h3>Manage Fund Operations</h3>
-                        <p>Handle employees, contributions, loans and repayments from one system.</p>
-                    </article>
-                </div>
-                <div class="col-md-4">
-                    <article class="step-card">
-                        <span class="step-num">03</span>
-                        <h3>Monitor Records</h3>
-                        <p>Keep fund records organized and easy to review at any time.</p>
-                    </article>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- ============ 7. FINAL CTA ============ -->
-    <section id="contact" class="section pt-0">
-        <div class="container">
-            <div class="cta-card">
-                <span class="cta-label">FundAxis</span>
-                <h2>Ready to Get Started?</h2>
-                <p>Access FundAxis and manage employee fund operations securely and efficiently.</p>
-                <div class="d-flex flex-wrap justify-content-center gap-3">
-                    <!-- Redirect to FundAxis login page -->
-                    <a class="btn btn-fa-light btn-lg" href="/login" th:href="@{/login}">Login</a>
-                    <!-- Redirect to FundAxis login page -->
-                    <a class="btn btn-fa-ghost btn-lg" href="/login" th:href="@{/login}"><i class="bi bi-shield-lock"></i> Secure Access</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-</main>
-
-<!-- ============ 8. FOOTER ============ -->
-<footer class="fa-footer">
+<!-- =========================================================
+     CTA
+========================================================= -->
+<section class="cta-section">
     <div class="container">
-        <div class="row g-5">
-            <div class="col-lg-4">
-                <div class="footer-brand">
-                    <span class="footer-logo"><img src="/images/fundaxis-logo.png" th:src="@{/images/fundaxis-logo.png}" alt="FundAxis"></span>
-                    <strong>FundAxis</strong>
+        <div class="cta-box">
+
+            <div class="cta-decoration cta-decoration-one"></div>
+            <div class="cta-decoration cta-decoration-two"></div>
+
+            <div class="row align-items-center position-relative">
+
+                <div class="col-lg-8">
+                    <span class="cta-small-title">FundAxis</span>
+                    <h2>Ready to Manage Employee Funds More Efficiently?</h2>
+                    <p>
+                        Access your FundAxis account and begin
+                        managing employees, contributions, loans
+                        and repayments from one platform.
+                    </p>
                 </div>
-                <p class="footer-text">A secure and organized platform for employee contributions, loans, repayments and fund records.</p>
+
+                <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                    <a th:href="@{/login}" class="btn cta-login-btn">Login</a>
+                    <a th:href="@{/signup}" class="btn cta-signup-btn">Sign Up</a>
+                </div>
+
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
-                <h4>Navigation</h4>
-                <ul>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer id="contact" class="footer-section">
+    <div class="container">
+
+        <div class="row g-4">
+
+            <div class="col-lg-5">
+
+                <a class="footer-brand" th:href="@{/}">
+                    <img th:src="@{/images/fundaxis-logo.png}" src="/images/fundaxis-logo.png" alt="FundAxis Logo">
+                    <span>FundAxis</span>
+                </a>
+
+                <p class="footer-description">
+                    A centralized employee fund management
+                    platform for contributions, loans,
+                    repayments and employee records.
+                </p>
+
+                <div class="footer-status">
+                    <span></span>
+                    System Operational
+                </div>
+
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h5>Navigation</h5>
+                <ul class="footer-links">
                     <li><a href="#home">Home</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#features">Features</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                 </ul>
             </div>
-            <div class="col-6 col-md-4 col-lg-3">
-                <h4>System</h4>
-                <ul>
-                    <!-- Redirect to FundAxis login page -->
-                    <li><a href="/login" th:href="@{/login}">Login</a></li>
+
+            <div class="col-6 col-lg-2">
+                <h5>System</h5>
+                <ul class="footer-links">
+                    <li><a th:href="@{/login}">Login</a></li>
+                    <li><a th:href="@{/signup}">Sign Up</a></li>
                     <li><a href="#features">Modules</a></li>
                 </ul>
             </div>
-            <div class="col-md-4 col-lg-3">
-                <h4>Security</h4>
-                <ul>
-                    <li>Secure Access</li>
-                    <li>Authorized Users</li>
-                    <li>Centralized Records</li>
-                </ul>
+
+            <div class="col-lg-3">
+                <h5>Employee Fund Management</h5>
+
+                <p class="footer-small-text">
+                    Built to simplify financial record
+                    management and fund administration.
+                </p>
+
+                <div class="footer-security">
+                    <i class="bi bi-shield-check"></i>
+                    Secure Fund Management
+                </div>
             </div>
+
         </div>
+
         <div class="footer-bottom">
-            <span>&copy; 2026 FundAxis. All rights reserved.</span>
-            <span>Employee Fund Management System</span>
+            <p>
+                © <span id="currentYear">2026</span>
+                FundAxis. All rights reserved.
+            </p>
+
+            <p>Employee Fund Management System</p>
         </div>
+
     </div>
 </footer>
 
-<!-- Scroll-to-top button -->
-<button type="button" id="scrollTopBtn" class="scroll-top" aria-label="Scroll to top"><i class="bi bi-arrow-up"></i></button>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/home.js" th:src="@{/js/home.js}" defer></script>
+<!-- =========================================================
+     BACK TO TOP
+========================================================= -->
+<button id="backToTop" class="back-to-top" aria-label="Back to top">
+    <i class="bi bi-arrow-up"></i>
+</button>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Custom JS -->
+<script th:src="@{/js/home.js}"></script>
+
 </body>
 </html>

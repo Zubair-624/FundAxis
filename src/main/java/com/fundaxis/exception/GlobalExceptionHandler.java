@@ -5,6 +5,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+
+///----- Not Found -> 404 NOT FOUND -----///
+///----- Duplicate -> 409 CONFLICT -----///
+
+
+
 ///==================== Global Exception Handler ====================///
 // Handles exceptions for all REST controllers
 @RestControllerAdvice
@@ -162,4 +168,48 @@ public class GlobalExceptionHandler {
     }
 
 
+    ///==================== User Account Exceptions ====================///
+
+    // Handle User Account Not Found
+    @ExceptionHandler(UserAccountNotFoundException.class)
+    public ResponseEntity<String> handleUserAccountNotFoundException(UserAccountNotFoundException exception) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+
+    }
+
+    // Handle Duplicate User Account
+    @ExceptionHandler(DuplicateUserAccountException.class)
+    public ResponseEntity<String> handleDuplicateUserAccountException(DuplicateUserAccountException exception) {
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+
+    }
+
+
+
+    //==================== Role Exceptions ====================//
+
+    // Handle Role Not Found
+    @ExceptionHandler(RoleNotFoundException.class)
+    public ResponseEntity<String> handleRoleNotFoundException(
+            RoleNotFoundException exception
+    ) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+
+
+    // Handle Duplicate Role
+    @ExceptionHandler(DuplicateRoleException.class)
+    public ResponseEntity<String> handleDuplicateRoleException(
+            DuplicateRoleException exception
+    ) {
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(exception.getMessage());
+    }
 }

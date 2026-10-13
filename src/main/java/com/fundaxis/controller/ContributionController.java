@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.fundaxis.dto.ContributionPaymentRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class ContributionController {
     ///---------- List ----------///
 
     // Get all Contributions List
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping
     public ResponseEntity<List<Contribution>> getAllContributionsList() {
 
@@ -37,6 +39,7 @@ public class ContributionController {
 
     // Get one Contribution by Contribution ID
     // Example: GET /api/contributions/25
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/{id}")
     public ResponseEntity<Contribution> getContributionById(@PathVariable Long id) {
 
@@ -47,6 +50,7 @@ public class ContributionController {
 
     // Get all Contributions belonging to an Employee
     // Example: GET /api/contributions/employee/EMP001
+    @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping("/employee/{employeeId}")
     public ResponseEntity<List<Contribution>> getContributionsByEmployee(@PathVariable String employeeId) {
 
@@ -58,6 +62,7 @@ public class ContributionController {
 
     // Create a Contribution for an Employee
     // Example: POST /api/contributions/employee/EMP001
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/employee/{employeeId}")
     public ResponseEntity<Contribution> createContribution(@PathVariable String employeeId, @Valid @RequestBody Contribution contribution) {
 
@@ -70,9 +75,11 @@ public class ContributionController {
 
 
     ///========== Mark a contribution as paid ==========///
+
     // Mark a pending Contribution as paid
     // Example: PATCH /api/contributions/25/pay
     // Returns HTTP 200 OK with the updated contribution
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/pay")
     public ResponseEntity<Contribution> markContributionAsPaid(@PathVariable Long id, @Valid @RequestBody ContributionPaymentRequest request) {
 
@@ -89,6 +96,7 @@ public class ContributionController {
 
     // Update a specific Contribution
     // Example: PUT /api/contributions/25
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Contribution> updateContribution(@PathVariable Long id, @Valid @RequestBody Contribution contribution) {
 
@@ -102,6 +110,7 @@ public class ContributionController {
 
     // Cancel a specific Contribution
     // Example: PATCH /api/contributions/25/cancel
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Contribution> cancelContribution(@PathVariable Long id) {
 
