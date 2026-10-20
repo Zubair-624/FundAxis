@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<!-- Page root with Thymeleaf and Spring Security namespaces -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head holds metadata and stylesheets -->
+<head>
+    <!-- Use UTF-8 character encoding -->
+    <meta charset="UTF-8">
+    <!-- Make the page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Tell search engines not to index this page -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Browser tab title -->
+    <title>Loan Extension Management | FundAxis</title>
+
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Load Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+    <!-- Load shared FundAxis dashboard styles -->
+    <link th:href="@{/css/dashboard.css}"
+          rel="stylesheet">
+
+    <!-- Load admin employee page styles -->
+    <link th:href="@{/css/admin-employees.css}"
+          rel="stylesheet">
+
+    <!-- Load loan extension page styles -->
+    <link th:href="@{/css/loan-extension.css}"
+          rel="stylesheet">
+</head>
+
+<!-- Body with the shared FundAxis class -->
+<body class="fa-body">
+
+<!-- Accessibility link to jump past the menu -->
+<a class="fa-skip-link" href="#main-content">
+    Skip to main content
+</a>
+
+<!-- Outer shell holding sidebar and content -->
+<div class="fa-shell">
+
+    <!-- Left admin sidebar -->
+    <aside class="fa-sidebar"
+           id="faSidebar"
+           aria-label="Admin navigation">
+
+        <!-- Sidebar logo area -->
+        <div class="fa-sidebar-brand">
+            <!-- Logo link back to dashboard -->
+            <a th:href="@{/admin/dashboard}"
+               class="fa-brand-link"
+               aria-label="FundAxis Admin dashboard home">
+                <!-- Logo image -->
+                <img th:src="@{/images/fundaxis-logo.png}"
+                     alt="FundAxis"
+                     class="fa-brand-logo">
+                <!-- Brand name text -->
+                <span class="fa-brand-text">
+                    FundAxis
+                </span>
+            </a>
+
+            <!-- Button to close sidebar on mobile -->
+            <button type="button"
+                    class="fa-sidebar-close"
+                    id="faSidebarClose"
+                    aria-label="Close navigation menu">
+                <!-- Close (X) icon -->
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Sidebar navigation menu -->
+        <nav class="fa-sidebar-nav">
+            <!-- Dashboard group heading -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <!-- Dashboard group list -->
+            <ul class="fa-nav-list">
+                <!-- Dashboard item -->
+                <li>
+                    <!-- Link to admin dashboard -->
+                    <a th:href="@{/admin/dashboard}" class="fa-nav-link">
+                        <!-- Speedometer icon -->
+                        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Administration group heading -->
+            <p class="fa-nav-heading">Administration</p>
+            <!-- Administration group list -->
+            <ul class="fa-nav-list">
+                <!-- Employee item -->
+                <li>
+                    <!-- Link to employee management -->
+                    <a th:href="@{/admin/employees}" class="fa-nav-link">
+                        <!-- People icon -->
+                        <i class="bi bi-people" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Employee Management</span>
+                    </a>
+                </li>
+                <!-- Contributions item -->
+                <li>
+                    <!-- Link to contributions -->
+                    <a th:href="@{/admin/contributions}" class="fa-nav-link">
+                        <!-- Piggy bank icon -->
+                        <i class="bi bi-piggy-bank" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Contributions</span>
+                    </a>
+                </li>
+                <!-- Loans item -->
+                <li>
+                    <!-- Link to loans -->
+                    <a th:href="@{/admin/loans}" class="fa-nav-link">
+                        <!-- Cash icon -->
+                        <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Loans</span>
+                    </a>
+                </li>
+                <!-- Loan Extensions item (current page) -->
+                <li>
+                    <!-- Active link marks the current page -->
+                    <a th:href="@{/admin/loan-extensions}" class="fa-nav-link active" aria-current="page">
+                        <!-- Calendar-plus icon -->
+                        <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Loan Extensions</span>
+                    </a>
+                </li>
+                <!-- Disbursements item -->
+                <li>
+                    <!-- Link to disbursements -->
+                    <a th:href="@{/admin/disbursements}" class="fa-nav-link">
+                        <!-- Arrow-out icon -->
+                        <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Loan Disbursements</span>
+                    </a>
+                </li>
+                <!-- Repayment schedules item -->
+                <li>
+                    <!-- Link to repayment schedules -->
+                    <a th:href="@{/admin/repayment-schedules}" class="fa-nav-link">
+                        <!-- Calendar-check icon -->
+                        <i class="bi bi-calendar-check" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Repayment Schedules</span>
+                    </a>
+                </li>
+                <!-- Repayments item -->
+                <li>
+                    <!-- Link to repayments -->
+                    <a th:href="@{/admin/repayments}" class="fa-nav-link">
+                        <!-- Receipt icon -->
+                        <i class="bi bi-receipt" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Repayments</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Security group heading -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <!-- Security group list -->
+            <ul class="fa-nav-list">
+                <!-- User accounts item -->
+                <li>
+                    <!-- Link to user accounts -->
+                    <a th:href="@{/admin/user-accounts}" class="fa-nav-link">
+                        <!-- Person-gear icon -->
+                        <i class="bi bi-person-gear" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>User Accounts</span>
+                    </a>
+                </li>
+                <!-- Roles item -->
+                <li>
+                    <!-- Link to role management -->
+                    <a th:href="@{/admin/roles}" class="fa-nav-link">
+                        <!-- Shield icon -->
+                        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Role Management</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Account group heading -->
+            <p class="fa-nav-heading">Account</p>
+            <!-- Account group list -->
+            <ul class="fa-nav-list">
+                <!-- Change password item -->
+                <li>
+                    <!-- Link to change password -->
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <!-- Key icon -->
+                        <i class="bi bi-key-fill" aria-hidden="true"></i>
+                        <!-- Link label -->
+                        <span>Change Password</span>
+                    </a>
+                </li>
+                <!-- Sign out item -->
+                <li>
+                    <!-- POST form so logout is CSRF-safe -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <!-- Submit button that logs out -->
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <!-- Logout icon -->
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                            <!-- Button label -->
+                            <span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dark overlay shown behind mobile sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <!-- Right side wrapper with topbar and content -->
+    <div class="fa-main-wrap">
+
+        <!-- Top bar -->
+        <header class="fa-topbar">
+            <!-- Left part of top bar -->
+            <div class="fa-topbar-left">
+                <!-- Hamburger button for mobile -->
+                <button type="button"
+                        class="fa-menu-toggle"
+                        id="faMenuToggle"
+                        aria-label="Open navigation menu"
+                        aria-controls="faSidebar"
+                        aria-expanded="false">
+                    <!-- Hamburger icon -->
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+
+                <!-- App title in top bar -->
+                <span class="fa-topbar-title">
+                    FundAxis
+                    <!-- Subtitle hidden on small screens -->
+                    <span class="fa-topbar-sub d-none d-md-inline">
+                        Employee Fund Management
+                    </span>
+                </span>
+            </div>
+
+            <!-- Right part of top bar -->
+            <div class="fa-topbar-right">
+                <!-- Notification button placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications">
+                    <!-- Bell icon -->
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown wrapper -->
+                <div class="dropdown">
+                    <!-- Button that opens the profile menu -->
+                    <button class="fa-profile-btn dropdown-toggle"
+                            type="button"
+                            id="faProfileMenu"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        <!-- Avatar circle -->
+                        <span class="fa-avatar" aria-hidden="true">
+                            <!-- Person icon -->
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <!-- Name and role, hidden on tiny screens -->
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <!-- Logged-in username -->
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <!-- Role badge -->
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </span>
+                    </button>
+
+                    <!-- Dropdown menu items -->
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <!-- Dropdown header row -->
+                        <li class="fa-dropdown-header">
+                            <!-- Logged-in username -->
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <!-- Role badge -->
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Profile item -->
+                        <li>
+                            <!-- Link to profile page -->
+                            <a class="dropdown-item" th:href="@{/profile}">
+                                <!-- Badge icon -->
+                                <i class="bi bi-person-badge" aria-hidden="true"></i> My Profile
+                            </a>
+                        </li>
+                        <!-- Change password item -->
+                        <li>
+                            <!-- Link to change password -->
+                            <a class="dropdown-item" th:href="@{/change-password}">
+                                <!-- Key icon -->
+                                <i class="bi bi-key" aria-hidden="true"></i> Change Password
+                            </a>
+                        </li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Sign out item -->
+                        <li>
+                            <!-- POST form so logout is CSRF-safe -->
+                            <form th:action="@{/logout}" method="post">
+                                <!-- Submit button that logs out -->
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <!-- Logout icon -->
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content; resultCount is the number of rows shown -->
+        <main class="fa-content"
+              id="main-content"
+              tabindex="-1"
+              th:with="resultCount=${extensions != null ? #lists.size(extensions) : 0}">
+
+            <!-- Page header with title and add button -->
+            <div class="fa-page-header flex-wrap">
+                <!-- Title block -->
+                <div>
+                    <!-- Page title -->
+                    <h1 class="fa-page-title">
+                        Loan Extension Management
+                    </h1>
+                    <!-- Page description -->
+                    <p class="fa-page-subtitle">
+                        Manage employee loan extension requests and extension lifecycle.
+                    </p>
+                    <!-- Breadcrumb trail -->
+                    <nav aria-label="Breadcrumb">
+                        <!-- Breadcrumb list -->
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <!-- Dashboard crumb -->
+                            <li class="breadcrumb-item">
+                                <!-- Link back to dashboard -->
+                                <a th:href="@{/admin/dashboard}">Dashboard</a>
+                            </li>
+                            <!-- Current page crumb -->
+                            <li class="breadcrumb-item active" aria-current="page">
+                                Loan Extensions
+                            </li>
+                        </ol>
+                    </nav>
+                </div>
+
+                <!-- Button to open the new request form -->
+                <a th:href="@{/admin/loan-extensions/new}" class="fa-btn fa-btn-primary">
+                    <!-- Plus icon -->
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Extension Request
+                </a>
+            </div>
+
+            <!-- Area for flash messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <!-- Success alert, shown only if successMessage exists -->
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <!-- Check icon -->
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <!-- Success text -->
+                    <span th:text="${successMessage}">Success message.</span>
+                    <!-- Close button -->
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Error alert, shown only if errorMessage exists -->
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <!-- Error icon -->
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <!-- Error text -->
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <!-- Close button -->
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Warning alert, shown only if warningMessage exists -->
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <!-- Warning icon -->
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <!-- Warning text -->
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <!-- Close button -->
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Summary cards row -->
+            <section class="row g-3 mb-4" aria-label="Loan extension summary">
+                <!-- Total card column -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <!-- Total card -->
+                    <div class="fa-card fa-stat-card">
+                        <!-- Card icon wrapper -->
+                        <span class="fa-stat-icon">
+                            <!-- Calendar-plus icon -->
+                            <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+                        </span>
+                        <!-- Card text block -->
+                        <div>
+                            <!-- Card label -->
+                            <p class="fa-stat-label">Total Extensions</p>
+                            <!-- Total count, defaults to 0 -->
+                            <p class="fa-stat-value" th:text="${totalExtensions != null ? totalExtensions : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending card column -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <!-- Pending card -->
+                    <div class="fa-card fa-stat-card">
+                        <!-- Card icon wrapper -->
+                        <span class="fa-stat-icon">
+                            <!-- Hourglass icon -->
+                            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                        </span>
+                        <!-- Card text block -->
+                        <div>
+                            <!-- Card label -->
+                            <p class="fa-stat-label">Pending</p>
+                            <!-- Pending count, defaults to 0 -->
+                            <p class="fa-stat-value" th:text="${pendingExtensions != null ? pendingExtensions : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approved card column -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <!-- Approved card -->
+                    <div class="fa-card fa-stat-card">
+                        <!-- Card icon wrapper -->
+                        <span class="fa-stat-icon">
+                            <!-- Check icon -->
+                            <i class="bi bi-check-circle" aria-hidden="true"></i>
+                        </span>
+                        <!-- Card text block -->
+                        <div>
+                            <!-- Card label -->
+                            <p class="fa-stat-label">Approved</p>
+                            <!-- Approved count, defaults to 0 -->
+                            <p class="fa-stat-value" th:text="${approvedExtensions != null ? approvedExtensions : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rejected/Cancelled card column -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <!-- Rejected/Cancelled card -->
+                    <div class="fa-card fa-stat-card">
+                        <!-- Card icon wrapper -->
+                        <span class="fa-stat-icon">
+                            <!-- X icon -->
+                            <i class="bi bi-x-circle" aria-hidden="true"></i>
+                        </span>
+                        <!-- Card text block -->
+                        <div>
+                            <!-- Card label -->
+                            <p class="fa-stat-label">Rejected / Cancelled</p>
+                            <!-- Rejected/Cancelled count, defaults to 0 -->
+                            <p class="fa-stat-value" th:text="${rejectedCancelledExtensions != null ? rejectedCancelledExtensions : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search and filter card -->
+            <section class="fa-card mb-4" aria-labelledby="extensionFilterTitle">
+                <!-- Card header -->
+                <div class="fa-card-header">
+                    <!-- Header text block -->
+                    <div>
+                        <!-- Card title -->
+                        <h2 class="fa-card-title" id="extensionFilterTitle">Search &amp; Filter</h2>
+                        <!-- Card hint text -->
+                        <p class="mb-0 text-secondary small">Find extension requests by loan or employee.</p>
+                    </div>
+                </div>
+
+                <!-- Card body padding -->
+                <div class="p-3">
+                    <!-- GET form so filters appear in the URL -->
+                    <form method="get" th:action="@{/admin/loan-extensions}" class="row g-3 align-items-end">
+                        <!-- Keyword column -->
+                        <div class="col-12 col-lg-7">
+                            <!-- Keyword label -->
+                            <label for="keyword" class="fa-label">Search</label>
+                            <!-- Keyword input that keeps the typed value -->
+                            <input type="search"
+                                   id="keyword"
+                                   name="keyword"
+                                   class="form-control fa-input"
+                                   th:value="${keyword}"
+                                   placeholder="Loan Application ID, Employee ID or Employee Name">
+                        </div>
+
+                        <!-- Status column -->
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <!-- Status label -->
+                            <label for="extensionStatus" class="fa-label">Extension Status</label>
+                            <!-- Status dropdown -->
+                            <select id="extensionStatus" name="extensionStatus" class="form-select fa-input">
+                                <!-- All statuses option -->
+                                <option value="" th:selected="${selectedExtensionStatus == null or selectedExtensionStatus == ''}">All Statuses</option>
+                                <!-- Pending option -->
+                                <option value="PENDING" th:selected="${selectedExtensionStatus == 'PENDING'}">PENDING</option>
+                                <!-- Approved option -->
+                                <option value="APPROVED" th:selected="${selectedExtensionStatus == 'APPROVED'}">APPROVED</option>
+                                <!-- Rejected option -->
+                                <option value="REJECTED" th:selected="${selectedExtensionStatus == 'REJECTED'}">REJECTED</option>
+                                <!-- Cancelled option -->
+                                <option value="CANCELLED" th:selected="${selectedExtensionStatus == 'CANCELLED'}">CANCELLED</option>
+                            </select>
+                        </div>
+
+                        <!-- Buttons column -->
+                        <div class="col-12 col-sm-6 col-lg-2">
+                            <!-- Button row -->
+                            <div class="d-flex gap-2 flex-wrap">
+                                <!-- Search submit button -->
+                                <button type="submit" class="fa-btn fa-btn-primary flex-grow-1">
+                                    <!-- Search icon -->
+                                    <i class="bi bi-search" aria-hidden="true"></i> Search
+                                </button>
+                                <!-- Clear link resets filters -->
+                                <a th:href="@{/admin/loan-extensions}" class="fa-btn fa-btn-outline flex-grow-1">
+                                    Clear
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Records card -->
+            <section class="fa-card" aria-labelledby="extensionRecordsTitle">
+                <!-- Card header with count -->
+                <div class="fa-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <!-- Header text block -->
+                    <div>
+                        <!-- Card title -->
+                        <h2 class="fa-card-title" id="extensionRecordsTitle">Loan Extension Records</h2>
+                        <!-- Card hint text -->
+                        <p class="mb-0 text-secondary small">Review and manage loan extension requests.</p>
+                    </div>
+
+                    <!-- Result count text -->
+                    <p class="mb-0 text-secondary small" role="status" aria-live="polite">
+                        Showing
+                        <!-- Number of rows -->
+                        <strong th:text="${resultCount}">0</strong>
+                        <!-- Singular or plural word -->
+                        <span th:text="${resultCount == 1 ? 'request' : 'requests'}">requests</span>
+                    </p>
+                </div>
+
+                <!-- Scrollable wrapper for small screens -->
+                <div class="table-responsive">
+                    <!-- Records table -->
+                    <table class="table fa-table align-middle mb-0">
+                        <!-- Hidden caption for screen readers -->
+                        <caption class="visually-hidden">FundAxis loan extension records</caption>
+                        <!-- Table header -->
+                        <thead>
+                        <!-- Header row -->
+                        <tr>
+                            <!-- Column: loan ID -->
+                            <th scope="col">Loan Application ID</th>
+                            <!-- Column: employee ID -->
+                            <th scope="col">Employee ID</th>
+                            <!-- Column: employee name -->
+                            <th scope="col">Employee Name</th>
+                            <!-- Column: months -->
+                            <th scope="col">Extension Months</th>
+                            <!-- Column: status -->
+                            <th scope="col">Status</th>
+                            <!-- Column: actions -->
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+                        <!-- Table body -->
+                        <tbody>
+                        <!-- One row per extension; status is uppercased, isPending flags PENDING rows -->
+                        <tr th:each="extension : ${extensions}"
+                            th:with="
+                                    status=${extension.extensionStatus != null ? #strings.toUpperCase(extension.extensionStatus) : ''},
+                                    isPending=${status == 'PENDING'}
+                                ">
+                            <!-- Cell: loan application ID -->
+                            <td class="fa-cell-id text-nowrap"
+                                th:text="${extension.loan != null and extension.loan.loanApplicationId != null ? extension.loan.loanApplicationId : '--'}">
+                                LOAN-10001
+                            </td>
+
+                            <!-- Cell: employee ID -->
+                            <td class="fa-cell-id text-nowrap"
+                                th:text="${extension.loan != null and extension.loan.employee != null and extension.loan.employee.employeeId != null ? extension.loan.employee.employeeId : '--'}">
+                                EMP001
+                            </td>
+
+                            <!-- Cell: employee name -->
+                            <td th:text="${extension.loan != null and extension.loan.employee != null and extension.loan.employee.fullName != null ? extension.loan.employee.fullName : '--'}">
+                                Employee Name
+                            </td>
+
+                            <!-- Cell: extension months with month/months wording -->
+                            <td class="text-nowrap"
+                                th:text="${extension.extensionMonths != null ? extension.extensionMonths + (extension.extensionMonths == 1 ? ' month' : ' months') : '--'}">
+                                6 months
+                            </td>
+
+                            <!-- Cell: status badge -->
+                            <td>
+                                <!-- Badge colour depends on status -->
+                                <span class="fa-status"
+                                      th:classappend="${status == 'APPROVED'} ? 'fa-status-success'
+                                          : (${status == 'REJECTED'} ? 'fa-status-danger'
+                                          : (${status == 'PENDING'} ? 'fa-status-info' : 'fa-status-neutral'))"
+                                      th:text="${extension.extensionStatus != null ? extension.extensionStatus : '--'}">
+                                    PENDING
+                                </span>
+                            </td>
+
+                            <!-- Cell: row actions -->
+                            <td>
+                                <!-- Action buttons wrapper -->
+                                <div class="fa-row-actions">
+                                    <!-- View button, shown for every row -->
+                                    <a class="fa-btn fa-btn-outline fa-btn-sm"
+                                       th:href="@{/admin/loan-extensions/{id}(id=${extension.id})}"
+                                       aria-label="View extension details">
+                                        <!-- Eye icon -->
+                                        <i class="bi bi-eye" aria-hidden="true"></i> View
+                                    </a>
+
+                                    <!-- NEW: Edit button, shown only for PENDING rows -->
+                                    <a class="fa-btn fa-btn-outline fa-btn-sm"
+                                       th:if="${isPending}"
+                                       th:href="@{/admin/loan-extensions/{id}/edit(id=${extension.id})}"
+                                       aria-label="Edit extension request">
+                                        <!-- Pencil icon -->
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i> Edit
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty row, shown only when there are no records -->
+                        <tr th:if="${extensions == null or extensions.isEmpty()}">
+                            <!-- Cell spanning all 6 columns -->
+                            <td colspan="6" class="text-center text-secondary py-5">
+                                <!-- Empty message -->
+                                <p class="mb-3">No loan extension records found.</p>
+                                <!-- Button to add the first request -->
+                                <a th:href="@{/admin/loan-extensions/new}" class="fa-btn fa-btn-primary fa-btn-sm">
+                                    <!-- Plus icon -->
+                                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Extension Request
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Page footer -->
+        <footer class="fa-footer">
+            <!-- App name -->
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <!-- Usage notice -->
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<!-- Load Bootstrap JavaScript (dropdowns, alerts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load FundAxis dashboard script (sidebar toggle) -->
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

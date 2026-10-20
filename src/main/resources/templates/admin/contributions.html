@@ -1,0 +1,443 @@
+<!--- FundAxis Admin Contribution Management (GET /admin/contributions). ADMIN only: backend authorization stays authoritative.
+      List page only. Expected model attributes:
+        contributions          List<Contribution> (or the content of a Spring Data Page)
+        totalContributions, pendingContributions, paidContributions, canceledContributions   (summary counts over ALL contributions)
+        totalElements, currentPage (zero-based), totalPages   (optional, enable pagination)
+        successMessage / errorMessage / warningMessage / infoMessage   (optional flash messages)
+      Contribution: id, employee (employeeId, fullName), contributionAmount, contributionMonth (first day of month),
+                    paymentDate, contributionStatus (PENDING | PAID | CANCELED), createdAt, updatedAt --->
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Contribution Management | FundAxis</title>
+
+    <!-- Bootstrap 5 + Bootstrap Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Shared FundAxis dashboard styles + the button / modal / table-footer / pagination styles from the Employee Management page -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+</head>
+<body class="fa-body">
+
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<div class="fa-shell">
+
+    <!-- Admin sidebar navigation -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+        <div class="fa-sidebar-brand">
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="fa-sidebar-nav">
+
+            <p class="fa-nav-heading">Dashboard</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Administration</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions is the active item on this page -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link active" aria-current="page"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Account</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span>
+                    </a>
+                </li>
+                <li>
+                    <!-- FundAxis logout form (sidebar) -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile overlay behind sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <div class="fa-main-wrap">
+
+        <!-- FundAxis Admin topbar -->
+        <header class="fa-topbar">
+            <div class="fa-topbar-left">
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle"
+                        aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+
+            <div class="fa-topbar-right">
+                <!-- Notification placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications (none)">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <li class="fa-dropdown-header">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- currency: display prefix for every amount on this page (change here only).
+             resultCount: totalElements for a Spring Data Page, otherwise the list size. -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="currency='BDT',
+                       resultCount=${totalElements != null ? totalElements : (contributions != null ? #lists.size(contributions) : 0)}">
+
+            <!-- FundAxis Admin Contribution Management -->
+            <div class="fa-page-header flex-wrap">
+                <div>
+                    <h1 class="fa-page-title">Contribution Management</h1>
+                    <p class="fa-page-subtitle">Manage employee monthly fund contributions.</p>
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Contribution Management</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a th:href="@{/admin/contributions/new}" class="fa-btn fa-btn-primary">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Contribution
+                </a>
+            </div>
+
+            <!-- Global alert messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-info alert-dismissible fade show fa-alert" role="alert" th:if="${infoMessage}">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${infoMessage}">Information message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Contribution summary cards: counts over the FULL contribution dataset (not just the current page) -->
+            <section class="row g-3 mb-3" aria-label="Contribution summary">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Total Contributions</p>
+                            <p class="fa-stat-value" th:text="${totalContributions != null ? totalContributions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Pending Contributions</p>
+                            <p class="fa-stat-value" th:text="${pendingContributions != null ? pendingContributions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-check-circle" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Paid Contributions</p>
+                            <p class="fa-stat-value" th:text="${paidContributions != null ? paidContributions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-x-circle" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Canceled Contributions</p>
+                            <p class="fa-stat-value" th:text="${canceledContributions != null ? canceledContributions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contribution records table -->
+            <section class="fa-card" aria-labelledby="faContributionsTitle">
+                <div class="fa-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <h2 class="fa-card-title" id="faContributionsTitle">Contribution Records</h2>
+                    <p class="mb-0 text-secondary small" role="status" aria-live="polite">
+                        Showing <strong th:text="${resultCount}">0</strong>
+                        <span th:text="${resultCount == 1 ? 'contribution' : 'contributions'}">contributions</span>
+                    </p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table fa-table align-middle mb-0">
+                        <caption class="visually-hidden">FundAxis employee contribution records</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Employee ID</th>
+                            <th scope="col">Employee Name</th>
+                            <th scope="col">Contribution Month</th>
+                            <th scope="col" class="text-end">Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Payment Date</th>
+                            <th scope="col">Created At</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- s = upper-cased status; the frontend only offers actions valid for PENDING (backend still enforces the rules) -->
+                        <tr th:each="c : ${contributions}"
+                            th:with="s=${c.contributionStatus != null ? #strings.toUpperCase(c.contributionStatus) : ''},
+                                     isPending=${s == 'PENDING'}">
+                            <!-- Official bank Employee ID, never the database Employee id -->
+                            <td class="fa-cell-id" th:text="${c.employee != null ? c.employee.employeeId : '--'}">EMP001</td>
+                            <td th:text="${c.employee != null ? c.employee.fullName : '--'}">Full Name</td>
+                            <td class="text-nowrap" th:text="${c.contributionMonth != null ? #temporals.format(c.contributionMonth, 'MMM yyyy') : '--'}">Jan 2026</td>
+                            <td class="text-end text-nowrap fw-semibold"
+                                th:text="${c.contributionAmount != null ? currency + ' ' + #numbers.formatDecimal(c.contributionAmount, 1, 'COMMA', 2, 'POINT') : '--'}">BDT 0.00</td>
+                            <td>
+                                <!-- Status is shown as text as well as colour -->
+                                <span class="fa-status"
+                                      th:classappend="${s == 'PAID'} ? 'fa-status-success'
+                                          : (${s == 'PENDING'} ? 'fa-status-warning' : 'fa-status-neutral')"
+                                      th:text="${c.contributionStatus != null ? c.contributionStatus : '--'}">PENDING</span>
+                            </td>
+                            <td class="text-nowrap" th:text="${c.paymentDate != null ? #temporals.format(c.paymentDate, 'dd MMM yyyy') : '--'}">--</td>
+                            <td class="text-nowrap" th:text="${c.createdAt != null ? #temporals.format(c.createdAt, 'dd MMM yyyy') : '--'}">--</td>
+                            <td>
+                                <!-- Row actions: View always; Edit / Mark Paid / Cancel only for PENDING.
+                                     Mark Paid and Cancel are POST forms inside the confirmation modals below. -->
+                                <div class="fa-row-actions">
+                                    <a class="fa-btn fa-btn-outline fa-btn-sm"
+                                       th:href="@{/admin/contributions/{id}(id=${c.id})}"
+                                       th:aria-label="'View contribution for ' + ${c.employee != null ? c.employee.employeeId : ''}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i> View
+                                    </a>
+                                    <a class="fa-btn fa-btn-outline fa-btn-sm" th:if="${isPending}"
+                                       th:href="@{/admin/contributions/{id}/edit(id=${c.id})}"
+                                       th:aria-label="'Edit contribution for ' + ${c.employee != null ? c.employee.employeeId : ''}">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i> Edit
+                                    </a>
+                                    <button type="button" class="fa-btn fa-btn-primary fa-btn-sm" th:if="${isPending}"
+                                            data-bs-toggle="modal"
+                                            th:data-bs-target="'#payModal-' + ${c.id}"
+                                            th:aria-label="'Mark contribution paid for ' + ${c.employee != null ? c.employee.employeeId : ''}">
+                                        <i class="bi bi-check2-circle" aria-hidden="true"></i> Mark Paid
+                                    </button>
+                                    <button type="button" class="fa-btn fa-btn-outline-danger fa-btn-sm" th:if="${isPending}"
+                                            data-bs-toggle="modal"
+                                            th:data-bs-target="'#cancelModal-' + ${c.id}"
+                                            th:aria-label="'Cancel contribution for ' + ${c.employee != null ? c.employee.employeeId : ''}">
+                                        <i class="bi bi-x-circle" aria-hidden="true"></i> Cancel
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty state -->
+                        <tr th:if="${contributions == null or contributions.isEmpty()}">
+                            <td colspan="8" class="text-center text-secondary py-5">
+                                <p class="mb-3">No contribution records found.</p>
+                                <a th:href="@{/admin/contributions/new}" class="fa-btn fa-btn-primary fa-btn-sm">
+                                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Contribution
+                                </a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination-ready footer: shown only when the controller supplies totalPages > 1.
+                     Spring Data Page numbers are zero-based. -->
+                <div class="fa-table-footer" th:if="${totalPages != null and totalPages > 1}">
+                    <span>Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">1</strong></span>
+
+                    <nav aria-label="Contribution pagination">
+                        <ul class="pagination pagination-sm fa-pagination">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/contributions(page=${currentPage - 1})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${p == currentPage} ? 'active'">
+                                <a class="page-link" th:href="@{/admin/contributions(page=${p})}" th:text="${p + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/contributions(page=${currentPage + 1})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </section>
+
+            <!-- Mark Paid / Cancel confirmation modals (PENDING contributions only, one pair per row).
+                 Both POST to the contribution id and carry a CSRF token via th:action. -->
+            <th:block th:each="c : ${contributions}"
+                      th:with="isPending=${c.contributionStatus != null and #strings.toUpperCase(c.contributionStatus) == 'PENDING'}">
+                <th:block th:if="${isPending}">
+
+                    <!-- Mark Paid confirmation -->
+                    <div class="modal fade" th:id="'payModal-' + ${c.id}" tabindex="-1"
+                         th:aria-labelledby="'payTitle-' + ${c.id}" th:aria-describedby="'payDesc-' + ${c.id}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form method="post" th:action="@{/admin/contributions/{id}/pay(id=${c.id})}">
+                                    <div class="modal-header">
+                                        <h2 class="modal-title" th:id="'payTitle-' + ${c.id}">Mark Contribution as Paid</h2>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <dl class="fa-modal-employee row g-1 mb-3">
+                                            <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.employee != null ? c.employee.employeeId : '--'}">EMP003</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Employee</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.employee != null ? c.employee.fullName : '--'}">Full Name</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Month</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.contributionMonth != null ? #temporals.format(c.contributionMonth, 'MMM yyyy') : '--'}">Jan 2026</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Amount</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.contributionAmount != null ? currency + ' ' + #numbers.formatDecimal(c.contributionAmount, 1, 'COMMA', 2, 'POINT') : '--'}">BDT 0.00</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Current Status</dt>
+                                            <dd class="col-7 mb-0"><span class="fa-status fa-status-warning" th:text="${c.contributionStatus}">PENDING</span></dd>
+                                        </dl>
+                                        <p class="mb-3" th:id="'payDesc-' + ${c.id}">Confirm that this contribution has been received. Select the actual payment date before marking the record as <strong>PAID</strong>. A paid contribution can no longer be edited or canceled.</p>
+
+                                        <!-- Payment date: required and chosen by the Admin. Posted as "paymentDate"
+                                             (the controller's @RequestParam LocalDate); never pre-filled with today's date. -->
+                                        <label th:for="'payDate-' + ${c.id}" class="fa-label">
+                                            Payment Date <span class="text-danger" aria-hidden="true">*</span>
+                                            <span class="visually-hidden">(required)</span>
+                                        </label>
+                                        <input type="date" name="paymentDate" required
+                                               class="form-control fa-input"
+                                               th:id="'payDate-' + ${c.id}"
+                                               th:aria-describedby="'payDateHelp-' + ${c.id}">
+                                        <div class="form-text" th:id="'payDateHelp-' + ${c.id}">
+                                            The date the contribution was actually received.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="fa-btn fa-btn-primary">Mark as Paid</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cancel confirmation -->
+                    <div class="modal fade" th:id="'cancelModal-' + ${c.id}" tabindex="-1"
+                         th:aria-labelledby="'cancelTitle-' + ${c.id}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form method="post" th:action="@{/admin/contributions/{id}/cancel(id=${c.id})}">
+                                    <div class="modal-header">
+                                        <h2 class="modal-title" th:id="'cancelTitle-' + ${c.id}">Cancel Contribution</h2>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <dl class="fa-modal-employee row g-1 mb-3">
+                                            <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.employee != null ? c.employee.employeeId : '--'}">EMP003</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Employee</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.employee != null ? c.employee.fullName : '--'}">Full Name</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Month</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.contributionMonth != null ? #temporals.format(c.contributionMonth, 'MMM yyyy') : '--'}">Jan 2026</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Amount</dt>
+                                            <dd class="col-7 fw-semibold mb-0" th:text="${c.contributionAmount != null ? currency + ' ' + #numbers.formatDecimal(c.contributionAmount, 1, 'COMMA', 2, 'POINT') : '--'}">BDT 0.00</dd>
+                                            <dt class="col-5 fw-normal text-secondary">Current Status</dt>
+                                            <dd class="col-7 mb-0"><span class="fa-status fa-status-warning" th:text="${c.contributionStatus}">PENDING</span></dd>
+                                        </dl>
+                                        <p class="mb-0">This contribution will be marked <strong>CANCELED</strong>. A canceled contribution can no longer be edited or paid.</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Contribution</button>
+                                        <button type="submit" class="fa-btn fa-btn-danger">Cancel Contribution</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                </th:block>
+            </th:block>
+
+        </main>
+
+        <!-- Admin dashboard footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

@@ -1,0 +1,1754 @@
+/* =========================================================
+   FundAxis — Admin User Account Management
+   Shared stylesheet for:
+
+   - user-accounts.html
+   - user-account-form.html
+   - user-account-details.html
+
+   Primary Brand Color:
+   #024731
+========================================================= */
+
+
+/* =========================================================
+   1. MODULE VARIABLES
+========================================================= */
+
+:root {
+
+    --ua-primary: #024731;
+    --ua-primary-dark: #013526;
+    --ua-primary-soft: #eaf4f0;
+    --ua-primary-border: #c8ddd5;
+
+    --ua-text: #1f2d28;
+    --ua-muted: #68766f;
+
+    --ua-border: #dfe7e3;
+
+    --ua-surface: #ffffff;
+    --ua-surface-soft: #f7faf8;
+
+    --ua-success: #157347;
+    --ua-success-soft: #eaf7f0;
+
+    --ua-warning: #8a6100;
+    --ua-warning-soft: #fff8e7;
+
+    --ua-danger: #b42318;
+    --ua-danger-soft: #fff1f0;
+
+    --ua-info: #0d6efd;
+    --ua-info-soft: #edf4ff;
+
+    --ua-neutral: #5f6b66;
+    --ua-neutral-soft: #f2f4f3;
+
+    --ua-shadow:
+            0 8px 24px rgba(20, 50, 39, 0.06);
+}
+
+
+/* =========================================================
+   2. GENERAL HELPERS
+========================================================= */
+
+.ua-card {
+
+    background:
+            var(--ua-surface);
+
+    border:
+            1px solid var(--ua-border);
+
+    border-radius:
+            0.9rem;
+
+    box-shadow:
+            var(--ua-shadow);
+}
+
+
+.ua-muted {
+
+    color:
+            var(--ua-muted);
+}
+
+
+.ua-nowrap {
+
+    white-space:
+            nowrap;
+}
+
+
+.ua-break {
+
+    overflow-wrap:
+            anywhere;
+}
+
+
+.ua-section-spacing {
+
+    margin-bottom:
+            1.5rem;
+}
+
+
+/* =========================================================
+   3. SUMMARY CARDS
+========================================================= */
+
+.ua-summary-card {
+
+    min-height:
+            120px;
+
+    padding:
+            1rem;
+
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.9rem;
+}
+
+
+.ua-summary-icon {
+
+    width:
+            46px;
+
+    height:
+            46px;
+
+    border-radius:
+            0.75rem;
+
+    display:
+            grid;
+
+    place-items:
+            center;
+
+    flex:
+            0 0 auto;
+
+    background:
+            var(--ua-primary-soft);
+
+    color:
+            var(--ua-primary);
+
+    font-size:
+            1.2rem;
+}
+
+
+.ua-summary-label {
+
+    margin:
+            0 0 0.15rem;
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.78rem;
+
+    text-transform:
+            uppercase;
+
+    letter-spacing:
+            0.035em;
+
+    font-weight:
+            700;
+}
+
+
+.ua-summary-value {
+
+    margin:
+            0;
+
+    color:
+            var(--ua-text);
+
+    font-size:
+            1.4rem;
+
+    font-weight:
+            800;
+
+    line-height:
+            1.2;
+
+    font-variant-numeric:
+            tabular-nums;
+}
+
+
+/* =========================================================
+   4. ACCOUNT STATUS BADGES
+========================================================= */
+
+.ua-status {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    justify-content:
+            center;
+
+    gap:
+            0.35rem;
+
+    min-width:
+            90px;
+
+    padding:
+            0.34rem 0.7rem;
+
+    border-radius:
+            999px;
+
+    font-size:
+            0.75rem;
+
+    font-weight:
+            750;
+
+    letter-spacing:
+            0.025em;
+
+    white-space:
+            nowrap;
+}
+
+
+.ua-status-active {
+
+    color:
+            var(--ua-success);
+
+    background:
+            var(--ua-success-soft);
+
+    border:
+            1px solid #bfe3ce;
+}
+
+
+.ua-status-pending {
+
+    color:
+            var(--ua-warning);
+
+    background:
+            var(--ua-warning-soft);
+
+    border:
+            1px solid #ead797;
+}
+
+
+.ua-status-locked {
+
+    color:
+            var(--ua-danger);
+
+    background:
+            var(--ua-danger-soft);
+
+    border:
+            1px solid #f0c6c2;
+}
+
+
+.ua-status-disabled {
+
+    color:
+            var(--ua-neutral);
+
+    background:
+            var(--ua-neutral-soft);
+
+    border:
+            1px solid #d7dcda;
+}
+
+
+/* =========================================================
+   5. ROLE BADGES
+========================================================= */
+
+.ua-role-list {
+
+    display:
+            flex;
+
+    flex-wrap:
+            wrap;
+
+    gap:
+            0.4rem;
+}
+
+
+.ua-role {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.25rem;
+
+    padding:
+            0.3rem 0.6rem;
+
+    border-radius:
+            999px;
+
+    font-size:
+            0.72rem;
+
+    font-weight:
+            750;
+
+    letter-spacing:
+            0.025em;
+
+    border:
+            1px solid var(--ua-primary-border);
+
+    color:
+            var(--ua-primary);
+
+    background:
+            var(--ua-primary-soft);
+}
+
+
+.ua-role-admin {
+
+    color:
+            #7a2e00;
+
+    background:
+            #fff3e8;
+
+    border-color:
+            #efc9a9;
+}
+
+
+.ua-role-support {
+
+    color:
+            #1858a3;
+
+    background:
+            #edf5ff;
+
+    border-color:
+            #c8dcf5;
+}
+
+
+.ua-role-user {
+
+    color:
+            var(--ua-primary);
+
+    background:
+            var(--ua-primary-soft);
+
+    border-color:
+            var(--ua-primary-border);
+}
+
+
+/* =========================================================
+   6. PASSWORD CHANGE INDICATOR
+========================================================= */
+
+.ua-password-flag {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.35rem;
+
+    padding:
+            0.32rem 0.65rem;
+
+    border-radius:
+            999px;
+
+    font-size:
+            0.75rem;
+
+    font-weight:
+            700;
+}
+
+
+.ua-password-required {
+
+    color:
+            var(--ua-warning);
+
+    background:
+            var(--ua-warning-soft);
+
+    border:
+            1px solid #ead797;
+}
+
+
+.ua-password-current {
+
+    color:
+            var(--ua-success);
+
+    background:
+            var(--ua-success-soft);
+
+    border:
+            1px solid #bfe3ce;
+}
+
+
+/* =========================================================
+   7. USER ACCOUNT TABLE
+========================================================= */
+
+.ua-user-cell {
+
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.75rem;
+
+    min-width:
+            180px;
+}
+
+
+.ua-user-avatar {
+
+    width:
+            40px;
+
+    height:
+            40px;
+
+    border-radius:
+            50%;
+
+    display:
+            grid;
+
+    place-items:
+            center;
+
+    flex:
+            0 0 auto;
+
+    background:
+            var(--ua-primary-soft);
+
+    color:
+            var(--ua-primary);
+
+    font-size:
+            1rem;
+
+    font-weight:
+            800;
+}
+
+
+.ua-user-info {
+
+    display:
+            flex;
+
+    flex-direction:
+            column;
+
+    gap:
+            0.1rem;
+
+    min-width:
+            0;
+}
+
+
+.ua-username {
+
+    color:
+            var(--ua-primary);
+
+    font-weight:
+            750;
+
+    overflow-wrap:
+            anywhere;
+}
+
+
+.ua-employee-name {
+
+    color:
+            var(--ua-text);
+
+    font-weight:
+            650;
+}
+
+
+.ua-employee-id {
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.8rem;
+}
+
+
+.ua-security-count {
+
+    font-variant-numeric:
+            tabular-nums;
+
+    font-weight:
+            700;
+}
+
+
+.ua-security-count-warning {
+
+    color:
+            var(--ua-danger);
+}
+
+
+.ua-empty-icon {
+
+    font-size:
+            2rem;
+
+    color:
+            #91a099;
+}
+
+
+/* =========================================================
+   8. CREATE ACCOUNT FORM
+========================================================= */
+
+.ua-form-card {
+
+    overflow:
+            hidden;
+}
+
+
+.ua-form-section {
+
+    padding:
+            1.25rem;
+}
+
+
+.ua-form-section + .ua-form-section {
+
+    border-top:
+            1px solid var(--ua-border);
+}
+
+
+.ua-form-section-title {
+
+    margin:
+            0 0 1rem;
+
+    color:
+            var(--ua-text);
+
+    font-size:
+            1rem;
+
+    font-weight:
+            750;
+}
+
+
+.ua-form-help-panel {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.85rem;
+
+    padding:
+            1rem 1.1rem;
+
+    border:
+            1px solid var(--ua-primary-border);
+
+    border-radius:
+            0.85rem;
+
+    background:
+            var(--ua-primary-soft);
+}
+
+
+.ua-form-help-panel > i {
+
+    color:
+            var(--ua-primary);
+
+    font-size:
+            1.25rem;
+}
+
+
+.ua-form-help-title {
+
+    margin:
+            0 0 0.35rem;
+
+    color:
+            var(--ua-primary);
+
+    font-size:
+            0.95rem;
+
+    font-weight:
+            750;
+}
+
+
+.ua-form-help-list {
+
+    margin:
+            0;
+
+    padding-left:
+            1.15rem;
+
+    color:
+            #43564e;
+
+    font-size:
+            0.88rem;
+}
+
+
+.ua-form-help-list li + li {
+
+    margin-top:
+            0.3rem;
+}
+
+
+.ua-password-wrapper {
+
+    position:
+            relative;
+}
+
+
+.ua-password-wrapper .form-control {
+
+    padding-right:
+            2.75rem;
+}
+
+
+.ua-password-toggle {
+
+    position:
+            absolute;
+
+    top:
+            50%;
+
+    right:
+            0.75rem;
+
+    transform:
+            translateY(-50%);
+
+    border:
+            0;
+
+    background:
+            transparent;
+
+    color:
+            var(--ua-muted);
+
+    padding:
+            0.2rem;
+
+    cursor:
+            pointer;
+}
+
+
+.ua-password-toggle:hover {
+
+    color:
+            var(--ua-primary);
+}
+
+
+.ua-form-actions {
+
+    display:
+            flex;
+
+    justify-content:
+            flex-end;
+
+    flex-wrap:
+            wrap;
+
+    gap:
+            0.75rem;
+
+    margin-top:
+            1.5rem;
+
+    padding-top:
+            1.25rem;
+
+    border-top:
+            1px solid var(--ua-border);
+}
+
+
+/* =========================================================
+   9. DETAILS PAGE
+========================================================= */
+
+.ua-detail-grid {
+
+    display:
+            grid;
+
+    grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    margin:
+            0;
+}
+
+
+.ua-detail-item {
+
+    min-width:
+            0;
+
+    padding:
+            1rem 1.15rem;
+
+    border-bottom:
+            1px solid var(--ua-border);
+}
+
+
+.ua-detail-item:nth-child(odd) {
+
+    border-right:
+            1px solid var(--ua-border);
+}
+
+
+.ua-detail-wide {
+
+    grid-column:
+            1 / -1;
+
+    border-right:
+            0 !important;
+}
+
+
+.ua-detail-label {
+
+    margin:
+            0 0 0.35rem;
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.77rem;
+
+    font-weight:
+            700;
+
+    text-transform:
+            uppercase;
+
+    letter-spacing:
+            0.035em;
+}
+
+
+.ua-detail-value {
+
+    margin:
+            0;
+
+    color:
+            var(--ua-text);
+
+    font-weight:
+            650;
+
+    overflow-wrap:
+            anywhere;
+}
+
+
+/* =========================================================
+   10. SECURITY OVERVIEW
+========================================================= */
+
+.ua-security-grid {
+
+    display:
+            grid;
+
+    grid-template-columns:
+            repeat(4, minmax(0, 1fr));
+
+    gap:
+            1rem;
+
+    padding:
+            1.1rem;
+}
+
+
+.ua-security-box {
+
+    padding:
+            1rem;
+
+    border:
+            1px solid var(--ua-border);
+
+    border-radius:
+            0.8rem;
+
+    background:
+            var(--ua-surface);
+}
+
+
+.ua-security-box-highlight {
+
+    border-color:
+            var(--ua-primary-border);
+
+    background:
+            var(--ua-primary-soft);
+}
+
+
+.ua-security-label {
+
+    display:
+            block;
+
+    margin-bottom:
+            0.35rem;
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.78rem;
+
+    font-weight:
+            650;
+}
+
+
+.ua-security-value {
+
+    display:
+            block;
+
+    color:
+            var(--ua-text);
+
+    font-size:
+            1rem;
+
+    font-weight:
+            800;
+
+    overflow-wrap:
+            anywhere;
+}
+
+
+.ua-security-box-highlight
+.ua-security-value {
+
+    color:
+            var(--ua-primary);
+}
+
+
+/* =========================================================
+   11. ACTION MANAGEMENT
+========================================================= */
+
+.ua-action-section {
+
+    padding:
+            1.1rem;
+}
+
+
+.ua-action-grid {
+
+    display:
+            grid;
+
+    grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    gap:
+            1rem;
+}
+
+
+.ua-action-box {
+
+    padding:
+            1rem;
+
+    border:
+            1px solid var(--ua-border);
+
+    border-radius:
+            0.85rem;
+
+    background:
+            var(--ua-surface);
+}
+
+
+.ua-action-box-danger {
+
+    border-color:
+            #efc3bf;
+
+    background:
+            #fffafa;
+}
+
+
+.ua-action-title {
+
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.5rem;
+
+    margin:
+            0 0 0.35rem;
+
+    color:
+            var(--ua-text);
+
+    font-size:
+            0.95rem;
+
+    font-weight:
+            750;
+}
+
+
+.ua-action-description {
+
+    margin:
+            0 0 1rem;
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.85rem;
+
+    line-height:
+            1.5;
+}
+
+
+.ua-action-buttons {
+
+    display:
+            flex;
+
+    flex-wrap:
+            wrap;
+
+    gap:
+            0.65rem;
+}
+
+
+/* =========================================================
+   12. ROLE MANAGEMENT PANEL
+========================================================= */
+
+.ua-role-management {
+
+    padding:
+            1.1rem;
+}
+
+
+.ua-assigned-role {
+
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    justify-content:
+            space-between;
+
+    gap:
+            1rem;
+
+    padding:
+            0.75rem 0;
+
+    border-bottom:
+            1px solid var(--ua-border);
+}
+
+
+.ua-assigned-role:last-child {
+
+    border-bottom:
+            0;
+}
+
+
+.ua-assigned-role-info {
+
+    display:
+            flex;
+
+    flex-direction:
+            column;
+
+    gap:
+            0.25rem;
+}
+
+
+.ua-role-name {
+
+    color:
+            var(--ua-text);
+
+    font-weight:
+            700;
+}
+
+
+.ua-role-description {
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.82rem;
+}
+
+
+/* =========================================================
+   13. SECURITY WARNING PANELS
+========================================================= */
+
+.ua-warning-panel {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.8rem;
+
+    padding:
+            1rem;
+
+    border-radius:
+            0.8rem;
+
+    border:
+            1px solid #ead797;
+
+    background:
+            var(--ua-warning-soft);
+
+    color:
+            #6e5200;
+}
+
+
+.ua-warning-panel > i {
+
+    font-size:
+            1.15rem;
+
+    flex:
+            0 0 auto;
+}
+
+
+.ua-danger-panel {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.8rem;
+
+    padding:
+            1rem;
+
+    border-radius:
+            0.8rem;
+
+    border:
+            1px solid #efc3bf;
+
+    background:
+            var(--ua-danger-soft);
+
+    color:
+            #7f2b23;
+}
+
+
+.ua-danger-panel > i {
+
+    font-size:
+            1.15rem;
+
+    flex:
+            0 0 auto;
+}
+
+
+.ua-info-panel {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.8rem;
+
+    padding:
+            1rem;
+
+    border-radius:
+            0.8rem;
+
+    border:
+            1px solid var(--ua-primary-border);
+
+    background:
+            var(--ua-primary-soft);
+
+    color:
+            #35594b;
+}
+
+
+.ua-info-panel > i {
+
+    font-size:
+            1.15rem;
+
+    color:
+            var(--ua-primary);
+
+    flex:
+            0 0 auto;
+}
+
+
+/* =========================================================
+   14. MODALS
+========================================================= */
+
+.ua-modal-warning {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.75rem;
+
+    padding:
+            0.9rem;
+
+    border-radius:
+            0.75rem;
+
+    background:
+            var(--ua-warning-soft);
+
+    color:
+            #6e5200;
+
+    border:
+            1px solid #ead797;
+}
+
+
+.ua-modal-danger {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.75rem;
+
+    padding:
+            0.9rem;
+
+    border-radius:
+            0.75rem;
+
+    background:
+            var(--ua-danger-soft);
+
+    color:
+            #7f2b23;
+
+    border:
+            1px solid #efc3bf;
+}
+
+
+.ua-modal-info {
+
+    display:
+            flex;
+
+    align-items:
+            flex-start;
+
+    gap:
+            0.75rem;
+
+    padding:
+            0.9rem;
+
+    border-radius:
+            0.75rem;
+
+    background:
+            var(--ua-primary-soft);
+
+    color:
+            #35594b;
+
+    border:
+            1px solid var(--ua-primary-border);
+}
+
+
+/* =========================================================
+   15. AUDIT TIMELINE
+========================================================= */
+
+.ua-audit-list {
+
+    list-style:
+            none;
+
+    margin:
+            0;
+
+    padding:
+            0;
+}
+
+
+.ua-audit-item {
+
+    position:
+            relative;
+
+    padding:
+            0 0 1.25rem 1.65rem;
+}
+
+
+.ua-audit-item:last-child {
+
+    padding-bottom:
+            0;
+}
+
+
+.ua-audit-item::before {
+
+    content:
+            "";
+
+    position:
+            absolute;
+
+    left:
+            0.38rem;
+
+    top:
+            0.4rem;
+
+    width:
+            8px;
+
+    height:
+            8px;
+
+    border-radius:
+            50%;
+
+    background:
+            var(--ua-primary);
+}
+
+
+.ua-audit-item::after {
+
+    content:
+            "";
+
+    position:
+            absolute;
+
+    left:
+            0.59rem;
+
+    top:
+            1rem;
+
+    width:
+            1px;
+
+    height:
+            calc(100% - 0.7rem);
+
+    background:
+            var(--ua-border);
+}
+
+
+.ua-audit-item:last-child::after {
+
+    display:
+            none;
+}
+
+
+.ua-audit-label {
+
+    display:
+            block;
+
+    color:
+            var(--ua-muted);
+
+    font-size:
+            0.78rem;
+
+    margin-bottom:
+            0.2rem;
+}
+
+
+.ua-audit-value {
+
+    color:
+            var(--ua-text);
+
+    font-weight:
+            650;
+}
+
+
+/* =========================================================
+   16. SELF ACCOUNT INDICATOR
+========================================================= */
+
+.ua-self-badge {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.3rem;
+
+    padding:
+            0.3rem 0.6rem;
+
+    border-radius:
+            999px;
+
+    color:
+            var(--ua-primary);
+
+    background:
+            var(--ua-primary-soft);
+
+    border:
+            1px solid var(--ua-primary-border);
+
+    font-size:
+            0.72rem;
+
+    font-weight:
+            700;
+}
+
+
+/* =========================================================
+   17. BUTTON HELPERS
+========================================================= */
+
+.ua-btn-danger-outline {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    justify-content:
+            center;
+
+    gap:
+            0.4rem;
+
+    min-height:
+            38px;
+
+    padding:
+            0.5rem 0.85rem;
+
+    border:
+            1px solid #d68f88;
+
+    border-radius:
+            0.55rem;
+
+    background:
+            #ffffff;
+
+    color:
+            var(--ua-danger);
+
+    font-size:
+            0.85rem;
+
+    font-weight:
+            700;
+
+    text-decoration:
+            none;
+
+    cursor:
+            pointer;
+
+    transition:
+            0.15s ease;
+}
+
+
+.ua-btn-danger-outline:hover {
+
+    background:
+            var(--ua-danger-soft);
+
+    color:
+            #8d1f16;
+
+    border-color:
+            #c96f67;
+}
+
+
+.ua-btn-warning-outline {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    justify-content:
+            center;
+
+    gap:
+            0.4rem;
+
+    min-height:
+            38px;
+
+    padding:
+            0.5rem 0.85rem;
+
+    border:
+            1px solid #d4ba63;
+
+    border-radius:
+            0.55rem;
+
+    background:
+            #ffffff;
+
+    color:
+            var(--ua-warning);
+
+    font-size:
+            0.85rem;
+
+    font-weight:
+            700;
+
+    cursor:
+            pointer;
+
+    transition:
+            0.15s ease;
+}
+
+
+.ua-btn-warning-outline:hover {
+
+    background:
+            var(--ua-warning-soft);
+}
+
+
+/* =========================================================
+   18. LOCK INFORMATION
+========================================================= */
+
+.ua-lock-info {
+
+    display:
+            inline-flex;
+
+    align-items:
+            center;
+
+    gap:
+            0.35rem;
+
+    color:
+            var(--ua-danger);
+
+    font-size:
+            0.82rem;
+
+    font-weight:
+            650;
+}
+
+
+/* =========================================================
+   19. RESPONSIVE — TABLET
+========================================================= */
+
+@media (max-width: 1199.98px) {
+
+    .ua-security-grid {
+
+        grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+    }
+
+
+    .ua-action-grid {
+
+        grid-template-columns:
+                1fr;
+    }
+}
+
+
+/* =========================================================
+   20. RESPONSIVE — MOBILE
+========================================================= */
+
+@media (max-width: 767.98px) {
+
+    .ua-detail-grid {
+
+        grid-template-columns:
+                1fr;
+    }
+
+
+    .ua-detail-item:nth-child(odd) {
+
+        border-right:
+                0;
+    }
+
+
+    .ua-detail-wide {
+
+        grid-column:
+                auto;
+    }
+
+
+    .ua-security-grid {
+
+        grid-template-columns:
+                1fr;
+    }
+
+
+    .ua-form-actions {
+
+        align-items:
+                stretch;
+    }
+
+
+    .ua-form-actions .fa-btn {
+
+        flex:
+                1 1 100%;
+
+        justify-content:
+                center;
+    }
+
+
+    .ua-action-buttons {
+
+        flex-direction:
+                column;
+    }
+
+
+    .ua-action-buttons button,
+    .ua-action-buttons a {
+
+        width:
+                100%;
+    }
+
+
+    .ua-assigned-role {
+
+        align-items:
+                flex-start;
+
+        flex-direction:
+                column;
+    }
+}
+
+
+/* =========================================================
+   21. RESPONSIVE — SMALL MOBILE
+========================================================= */
+
+@media (max-width: 479.98px) {
+
+    .ua-summary-card {
+
+        min-height:
+                105px;
+    }
+
+
+    .ua-summary-value {
+
+        font-size:
+                1.25rem;
+    }
+
+
+    .ua-form-help-panel,
+    .ua-warning-panel,
+    .ua-danger-panel,
+    .ua-info-panel {
+
+        flex-direction:
+                column;
+    }
+}

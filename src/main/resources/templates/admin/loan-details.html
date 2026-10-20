@@ -1,0 +1,669 @@
+<!--- FundAxis Admin Loan Details (GET /admin/loans/{loanApplicationId}). ADMIN only: backend authorization stays authoritative.
+      Read-only page. Expected model attribute:  loan
+      Loan: loanApplicationId, employee (...), loanType, loanPurpose, requestedAmount, interestRate,
+      tenureMonths, loanStatus (...), eligibilityStatus (PENDING | ELIGIBLE | NOT_ELIGIBLE), applicationDate, approvalDate, createdAt, updatedAt
+      Optional flash messages: successMessage / errorMessage / warningMessage / infoMessage.
+      Lifecycle actions are POST forms (CSRF via th:action): /admin/loans/{loanApplicationId}/submit (DRAFT) /review (SUBMITTED), /eligibility, /approve (UNDER_REVIEW + ELIGIBLE) and /reject (UNDER_REVIEW).
+      The Loan database id is never displayed or used in URLs. --->
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Loan Details | FundAxis</title>
+
+    <!-- Bootstrap 5 + Bootstrap Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Shared FundAxis dashboard styles + the button / modal / table-footer / pagination styles from the Employee Management page -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-loans.css}" rel="stylesheet">
+</head>
+<body class="fa-body">
+
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<div class="fa-shell">
+
+    <!-- Admin sidebar navigation -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+        <div class="fa-sidebar-brand">
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="fa-sidebar-nav">
+
+            <p class="fa-nav-heading">Dashboard</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Administration</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans is the active item on this page -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link active" aria-current="page"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Account</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span>
+                    </a>
+                </li>
+                <li>
+                    <!-- FundAxis logout form (sidebar) -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile overlay behind sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <div class="fa-main-wrap">
+
+        <!-- FundAxis Admin topbar -->
+        <header class="fa-topbar">
+            <div class="fa-topbar-left">
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle"
+                        aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+
+            <div class="fa-topbar-right">
+                <!-- Notification placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications (none)">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <li class="fa-dropdown-header">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- currency: display prefix only. s / e = upper-cased loan / eligibility status.
+             reviewStatus: MUST equal the review-stage constant that LoanService.startLoanReview sets in Loan.java (change it here only).
+             Action visibility is UX only; the backend still enforces every lifecycle rule. -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="currency='BDT',
+                       s=${loan.loanStatus != null ? #strings.toUpperCase(loan.loanStatus) : ''},
+                       e=${loan.eligibilityStatus != null ? #strings.toUpperCase(loan.eligibilityStatus) : ''},
+                       isDraft=${s == 'DRAFT'},
+                       isSubmitted=${s == 'SUBMITTED'},
+                       isCancelable=${s == 'DRAFT' or s == 'SUBMITTED'},
+                       reviewStatus='UNDER_REVIEW',
+                       isInReview=${s == reviewStatus},
+                       isEligible=${e == 'ELIGIBLE'},
+                       principalText=${loan.requestedAmount != null ? currency + ' ' + #numbers.formatDecimal(loan.requestedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">
+
+            <!-- FundAxis Admin Loan Details -->
+            <div class="fa-page-header flex-wrap">
+                <div>
+                    <h1 class="fa-page-title">Loan Details</h1>
+                    <p class="fa-page-subtitle">Review this employee loan application and its current lifecycle status.</p>
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/admin/loans}">Loan Management</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Loan Details</li>
+                        </ol>
+                    </nav>
+                </div>
+
+                <!-- Actions: Back is always shown; lifecycle actions depend on the loan status (UX only, the backend enforces the rules).
+                     APPROVED and REJECTED loans have no further action here. -->
+                <div class="d-flex flex-wrap gap-2">
+                    <a th:href="@{/admin/loans}" class="fa-btn fa-btn-outline">
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Loans
+                    </a>
+
+                    <!-- DRAFT -->
+                    <a th:href="@{/admin/loans/{loanApplicationId}/edit(loanApplicationId=${loan.loanApplicationId})}"
+                       class="fa-btn fa-btn-outline" th:if="${isDraft}">
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i> Edit Loan
+                    </a>
+                    <button type="button" class="fa-btn fa-btn-primary" th:if="${isDraft}"
+                            data-bs-toggle="modal" data-bs-target="#submitModal">
+                        <i class="bi bi-send" aria-hidden="true"></i> Submit Loan
+                    </button>
+
+                    <!-- SUBMITTED -->
+                    <button type="button" class="fa-btn fa-btn-primary" th:if="${isSubmitted}"
+                            data-bs-toggle="modal" data-bs-target="#reviewModal">
+                        <i class="bi bi-search" aria-hidden="true"></i> Start Review
+                    </button>
+
+                    <!-- Cancel Loan button: added right here -->
+                    <button type="button" class="fa-btn fa-btn-outline-danger" th:if="${isDraft or isSubmitted}"
+                            data-bs-toggle="modal" data-bs-target="#cancelLoanModal">
+                        <i class="bi bi-x-circle" aria-hidden="true"></i> Cancel Loan
+                    </button>
+
+                    <!-- IN REVIEW -->
+                    <button type="button" class="fa-btn fa-btn-primary" th:if="${isInReview}"
+                            data-bs-toggle="modal" data-bs-target="#eligibilityModal">
+                        <i class="bi bi-clipboard-check" aria-hidden="true"></i> Update Eligibility
+                    </button>
+
+                    <!-- APPROVE (under review + eligible) -->
+                    <button type="button" class="fa-btn fa-btn-primary" th:if="${isInReview and isEligible}"
+                            data-bs-toggle="modal" data-bs-target="#approveLoanModal">
+                        <i class="bi bi-check2-circle" aria-hidden="true"></i> Approve Loan
+                    </button>
+
+                    <!-- REJECT (under review) -->
+                    <button type="button" class="fa-btn fa-btn-outline-danger" th:if="${isInReview}"
+                            data-bs-toggle="modal" data-bs-target="#rejectLoanModal">
+                        <i class="bi bi-x-circle" aria-hidden="true"></i> Reject Loan
+                    </button>
+
+                    <!-- Cancel Loan and any later lifecycle actions are added in later steps. -->
+                </div>
+            </div>
+
+            <div class="fa-alerts" aria-live="polite">
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-info alert-dismissible fade show fa-alert" role="alert" th:if="${infoMessage}">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${infoMessage}">Information message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Loan summary: Loan Application ID and Loan Status are the prominent items -->
+            <section class="fa-card fa-stat-card mb-3" aria-label="Loan summary">
+                <span class="fa-stat-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                <div>
+                    <p class="fa-stat-value fs-4 mb-1" th:text="${loan.loanApplicationId != null ? loan.loanApplicationId : '--'}">LOAN-10001</p>
+                    <p class="fa-stat-label mb-2">
+                        <span th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP000</span>
+                        &middot; Requested <strong th:text="${principalText}">BDT 0.00</strong>
+                    </p>
+                    <!-- Status is shown as text as well as colour -->
+                    <span class="fa-status"
+                          th:classappend="${s == 'APPROVED' or s == 'ACTIVE'} ? 'fa-status-success'
+                                              : (${s == 'SUBMITTED' or #strings.contains(s, 'REVIEW')} ? 'fa-status-info'
+                                              : (${s == 'REJECTED'} ? 'fa-status-danger' : 'fa-status-neutral'))"
+                          th:text="${loan.loanStatus != null ? loan.loanStatus : '--'}">DRAFT</span>
+                    <span class="visually-hidden">Eligibility:</span>
+                    <span class="fa-status"
+                          th:classappend="${e == 'ELIGIBLE'} ? 'fa-status-success'
+                                              : (${e == 'NOT_ELIGIBLE'} ? 'fa-status-danger' : 'fa-status-neutral')"
+                          th:text="${loan.eligibilityStatus != null ? loan.eligibilityStatus : '--'}">ELIGIBLE</span>
+                </div>
+            </section>
+
+            <div class="row g-3 mb-3">
+
+                <!-- Employee details (read-only). The official bank Employee ID is the employee identity. -->
+                <div class="col-12 col-xl-6">
+                    <section class="fa-card h-100" aria-labelledby="faEmployeeTitle">
+                        <div class="fa-card-header">
+                            <h2 class="fa-card-title" id="faEmployeeTitle">Employee Details</h2>
+                        </div>
+                        <dl class="mb-0 px-3 px-md-4" th:if="${loan.employee != null}">
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Employee ID</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.employee.employeeId}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Full Name</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.employee.fullName != null ? loan.employee.fullName : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Email</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold text-break" th:text="${loan.employee.email != null ? loan.employee.email : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Phone Number</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.employee.phoneNumber != null ? loan.employee.phoneNumber : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3">
+                                <dt class="col-sm-5 fw-normal text-secondary">Employee Status</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.employee.employeeStatus != null ? loan.employee.employeeStatus : '--'}">--</dd>
+                            </div>
+                        </dl>
+                        <p class="text-secondary p-3 p-md-4 mb-0" th:if="${loan.employee == null}">
+                            Employee information is not available for this record.
+                        </p>
+                        <div class="px-3 px-md-4 pb-3 pb-md-4" th:if="${loan.employee != null}">
+                            <a th:href="@{/admin/employees/{employeeId}(employeeId=${loan.employee.employeeId})}" class="fa-btn fa-btn-outline fa-btn-sm mt-3">
+                                <i class="bi bi-person-vcard" aria-hidden="true"></i> View Employee
+                            </a>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Loan terms (read-only) -->
+                <div class="col-12 col-xl-6">
+                    <section class="fa-card h-100" aria-labelledby="faTermsTitle">
+                        <div class="fa-card-header">
+                            <h2 class="fa-card-title" id="faTermsTitle">Loan Terms</h2>
+                        </div>
+                        <dl class="mb-0 px-3 px-md-4">
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Loan Application ID</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.loanApplicationId != null ? loan.loanApplicationId : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Loan Type</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold"
+                                    th:text="${loan.loanType != null ? #strings.capitalize(#strings.toLowerCase(loan.loanType)) : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Requested Amount</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${principalText}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom" th:if="${loan.approvedAmount != null}">
+                                <dt class="col-sm-5 fw-normal text-secondary">Approved Amount</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold"
+                                    th:text="${currency + ' ' + #numbers.formatDecimal(loan.approvedAmount, 1, 'COMMA', 2, 'POINT')}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Interest Rate</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.interestRate != null ? #numbers.formatDecimal(loan.interestRate, 1, 'COMMA', 2, 'POINT') + '%' : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Tenure</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.tenureMonths != null ? loan.tenureMonths + (loan.tenureMonths == 1 ? ' month' : ' months') : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Loan Purpose</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold text-break"
+                                    th:text="${loan.loanPurpose != null ? loan.loanPurpose : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom" th:if="${loan.rejectionReason != null and !#strings.isEmpty(loan.rejectionReason)}">
+                                <dt class="col-sm-5 fw-normal text-secondary">Rejection Reason</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold text-break" th:text="${loan.rejectionReason}">--</dd>
+                            </div>
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Loan Status</dt>
+                                <dd class="col-sm-7 mb-0"><span class="fa-status"
+                                                                th:classappend="${s == 'APPROVED' or s == 'ACTIVE'} ? 'fa-status-success'
+                                              : (${s == 'SUBMITTED' or #strings.contains(s, 'REVIEW')} ? 'fa-status-info'
+                                              : (${s == 'REJECTED'} ? 'fa-status-danger' : 'fa-status-neutral'))"
+                                                                th:text="${loan.loanStatus != null ? loan.loanStatus : '--'}">DRAFT</span></dd>
+                            </div>
+                            <div class="row py-3">
+                                <dt class="col-sm-5 fw-normal text-secondary">Eligibility Status</dt>
+                                <dd class="col-sm-7 mb-0"><span class="fa-status"
+                                                                th:classappend="${e == 'ELIGIBLE'} ? 'fa-status-success'
+                                              : (${e == 'NOT_ELIGIBLE'} ? 'fa-status-danger' : 'fa-status-neutral')"
+                                                                th:text="${loan.eligibilityStatus != null ? loan.eligibilityStatus : '--'}">ELIGIBLE</span></dd>
+                            </div>
+                        </dl>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Dates & audit information (read-only) -->
+            <section class="fa-card mb-3" aria-labelledby="faAuditTitle">
+                <div class="fa-card-header">
+                    <h2 class="fa-card-title" id="faAuditTitle">Dates &amp; Audit Information</h2>
+                </div>
+                <dl class="mb-0 px-3 px-md-4">
+                    <div class="row">
+                        <div class="col-12 col-xl-6">
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Application Date</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.applicationDate != null ? #temporals.format(loan.applicationDate, 'dd MMM yyyy') : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3">
+                                <dt class="col-sm-5 fw-normal text-secondary">Approval Date</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.approvalDate != null ? #temporals.format(loan.approvalDate, 'dd MMM yyyy') : '--'}">--</dd>
+                            </div>
+                        </div>
+                        <div class="col-12 col-xl-6">
+                            <div class="row py-3 border-bottom">
+                                <dt class="col-sm-5 fw-normal text-secondary">Created At</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.createdAt != null ? #temporals.format(loan.createdAt, 'dd MMM yyyy, HH:mm') : '--'}">--</dd>
+                            </div>
+                            <div class="row py-3">
+                                <dt class="col-sm-5 fw-normal text-secondary">Updated At</dt>
+                                <dd class="col-sm-7 mb-0 fw-semibold" th:text="${loan.updatedAt != null ? #temporals.format(loan.updatedAt, 'dd MMM yyyy, HH:mm') : '--'}">--</dd>
+                            </div>
+                        </div>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- Submit Loan confirmation (DRAFT only; POST with CSRF token via th:action) -->
+            <div class="modal fade" id="submitModal" tabindex="-1" aria-labelledby="submitTitle" aria-describedby="submitDesc" aria-hidden="true" th:if="${isDraft}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form method="post" th:action="@{/admin/loans/{loanApplicationId}/submit(loanApplicationId=${loan.loanApplicationId})}">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="submitTitle">Submit Loan</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <dl class="fa-modal-employee row g-1 mb-3">
+                                    <dt class="col-5 fw-normal text-secondary">Loan Application ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanApplicationId}">LOAN-10001</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP003</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee Name</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null and loan.employee.fullName != null ? loan.employee.fullName : '--'}">Full Name</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Requested Amount</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${principalText}">BDT 0.00</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Current Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-neutral" th:text="${loan.loanStatus}">DRAFT</span></dd>
+                                </dl>
+                                <p class="mb-0" id="submitDesc">This draft loan will be submitted into the loan workflow. After submission, draft-only editing will no longer be available.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep as Draft</button>
+                                <button type="submit" class="fa-btn fa-btn-primary">Submit Loan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Loan Review confirmation (SUBMITTED only; POST with CSRF token via th:action) -->
+            <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewTitle" aria-describedby="reviewDesc" aria-hidden="true" th:if="${isSubmitted}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form method="post" th:action="@{/admin/loans/{loanApplicationId}/review(loanApplicationId=${loan.loanApplicationId})}">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="reviewTitle">Start Loan Review</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <dl class="fa-modal-employee row g-1 mb-3">
+                                    <dt class="col-5 fw-normal text-secondary">Loan Application ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanApplicationId}">LOAN-10001</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP003</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee Name</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null and loan.employee.fullName != null ? loan.employee.fullName : '--'}">Full Name</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Requested Amount</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${principalText}">BDT 0.00</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Current Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-info" th:text="${loan.loanStatus}">SUBMITTED</span></dd>
+                                </dl>
+                                <p class="mb-0" id="reviewDesc">This submitted loan will be moved into the review stage. Eligibility can then be assessed using the existing FundAxis workflow.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep as Submitted</button>
+                                <button type="submit" class="fa-btn fa-btn-primary">Start Review</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Update Loan Eligibility (review stage only; POST with CSRF token via th:action).
+                 Option values are the Loan.EligibilityStatus enum names, posted as "eligibilityStatus". -->
+            <div class="modal fade" id="eligibilityModal" tabindex="-1" aria-labelledby="eligibilityTitle" aria-describedby="eligibilityDesc" aria-hidden="true" th:if="${isInReview}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form method="post" th:action="@{/admin/loans/{loanApplicationId}/eligibility(loanApplicationId=${loan.loanApplicationId})}">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="eligibilityTitle">Update Loan Eligibility</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <dl class="fa-modal-employee row g-1 mb-3">
+                                    <dt class="col-5 fw-normal text-secondary">Loan Application ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanApplicationId}">LOAN-10001</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP003</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee Name</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null and loan.employee.fullName != null ? loan.employee.fullName : '--'}">Full Name</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Requested Amount</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${principalText}">BDT 0.00</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Loan Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-info" th:text="${loan.loanStatus}">STATUS</span></dd>
+                                    <dt class="col-5 fw-normal text-secondary">Current Eligibility</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-neutral" th:text="${loan.eligibilityStatus != null ? loan.eligibilityStatus : '--'}">--</span></dd>
+                                </dl>
+
+                                <label for="eligibilitySelect" class="fa-label">
+                                    Eligibility Status <span class="text-danger" aria-hidden="true">*</span>
+                                    <span class="visually-hidden">(required)</span>
+                                </label>
+                                <select id="eligibilitySelect" name="eligibilityStatus" required
+                                        class="form-select fa-input" aria-describedby="eligibilityDesc">
+                                    <option value="" selected disabled>Select eligibility</option>
+                                    <option value="ELIGIBLE" th:selected="${e == 'ELIGIBLE'}">ELIGIBLE</option>
+                                    <option value="NOT_ELIGIBLE" th:selected="${e == 'NOT_ELIGIBLE'}">NOT_ELIGIBLE</option>
+                                </select>
+                                <div class="form-text" id="eligibilityDesc">
+                                    Eligibility can only be updated while the loan is under review.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="fa-btn fa-btn-primary">Update Eligibility</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Approve Loan (UNDER_REVIEW + ELIGIBLE only; POST with CSRF token via th:action).
+                 Posts "approvedAmount" and "interestRate"; the backend validates both and sets APPROVED + approval date. -->
+            <div class="modal fade" id="approveLoanModal" tabindex="-1" aria-labelledby="approveLoanTitle" aria-describedby="approveLoanDesc" aria-hidden="true" th:if="${isInReview and isEligible}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form method="post" th:action="@{/admin/loans/{loanApplicationId}/approve(loanApplicationId=${loan.loanApplicationId})}">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="approveLoanTitle">Approve Loan</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <dl class="fa-modal-employee row g-1 mb-3">
+                                    <dt class="col-5 fw-normal text-secondary">Loan Application ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanApplicationId}">LOAN-10001</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP003</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee Name</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null and loan.employee.fullName != null ? loan.employee.fullName : '--'}">Full Name</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Requested Amount</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${principalText}">BDT 0.00</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Eligibility</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-success" th:text="${loan.eligibilityStatus}">ELIGIBLE</span></dd>
+                                    <dt class="col-5 fw-normal text-secondary">Loan Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-info" th:text="${loan.loanStatus}">UNDER_REVIEW</span></dd>
+                                </dl>
+                                <p class="mb-3" id="approveLoanDesc">Confirm the approved amount and interest rate. The loan will be marked <strong>APPROVED</strong> and these actions will no longer be available.</p>
+
+                                <div class="mb-3">
+                                    <label for="approvedAmount" class="fa-label">Approved Amount
+                                        <span class="text-danger" aria-hidden="true">*</span>
+                                        <span class="visually-hidden">(required)</span>
+                                    </label>
+                                    <input type="number" id="approvedAmount" name="approvedAmount" class="form-control fa-input"
+                                           step="0.01" min="0.01" inputmode="decimal" required
+                                           th:value="${loan.requestedAmount}" aria-describedby="approvedAmountHelp">
+                                    <div class="form-text" id="approvedAmountHelp">Amount in <span th:text="${currency}">BDT</span>, minimum 0.01. Pre-filled with the requested amount.</div>
+                                </div>
+                                <div>
+                                    <label for="approveInterestRate" class="fa-label">Interest Rate (%)
+                                        <span class="text-danger" aria-hidden="true">*</span>
+                                        <span class="visually-hidden">(required)</span>
+                                    </label>
+                                    <input type="number" id="approveInterestRate" name="interestRate" class="form-control fa-input"
+                                           step="0.01" min="0" inputmode="decimal" required
+                                           th:value="${loan.interestRate}" aria-describedby="approveInterestRateHelp">
+                                    <div class="form-text" id="approveInterestRateHelp">Annual rate as a percentage, minimum 0.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="fa-btn fa-btn-primary">Approve Loan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reject Loan (UNDER_REVIEW only; POST with CSRF token via th:action). Posts "rejectionReason". -->
+            <div class="modal fade" id="rejectLoanModal" tabindex="-1" aria-labelledby="rejectLoanTitle" aria-describedby="rejectLoanDesc" aria-hidden="true" th:if="${isInReview}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form method="post" th:action="@{/admin/loans/{loanApplicationId}/reject(loanApplicationId=${loan.loanApplicationId})}">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="rejectLoanTitle">Reject Loan</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <dl class="fa-modal-employee row g-1 mb-3">
+                                    <dt class="col-5 fw-normal text-secondary">Loan Application ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanApplicationId}">LOAN-10001</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP003</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee Name</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null and loan.employee.fullName != null ? loan.employee.fullName : '--'}">Full Name</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Requested Amount</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${principalText}">BDT 0.00</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Loan Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-info" th:text="${loan.loanStatus}">UNDER_REVIEW</span></dd>
+                                </dl>
+                                <p class="mb-3" id="rejectLoanDesc">This loan will be marked <strong>REJECTED</strong> and cannot be approved afterwards. A reason is required.</p>
+
+                                <label for="rejectionReason" class="fa-label">Rejection Reason
+                                    <span class="text-danger" aria-hidden="true">*</span>
+                                    <span class="visually-hidden">(required)</span>
+                                </label>
+                                <textarea id="rejectionReason" name="rejectionReason" class="form-control fa-input"
+                                          rows="4" maxlength="1000" required aria-describedby="rejectionReasonHelp"></textarea>
+                                <div class="form-text" id="rejectionReasonHelp">Up to 1000 characters.</div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Under Review</button>
+                                <button type="submit" class="fa-btn fa-btn-danger">Reject Loan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- 👇 ADD THIS NEW CANCEL LOAN MODAL RIGHT HERE 👇 -->
+            <div class="modal fade" id="cancelLoanModal" tabindex="-1" aria-labelledby="cancelLoanTitle" aria-describedby="cancelLoanDesc" aria-hidden="true" th:if="${isDraft or isSubmitted}">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form method="post" th:action="@{/admin/loans/{loanApplicationId}/cancel(loanApplicationId=${loan.loanApplicationId})}">
+                            <div class="modal-header">
+                                <h2 class="modal-title" id="cancelLoanTitle">Cancel Loan</h2>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <dl class="fa-modal-employee row g-1 mb-3">
+                                    <dt class="col-5 fw-normal text-secondary">Loan Application ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanApplicationId}">LOAN-10001</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee ID</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP003</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Employee Name</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.employee != null and loan.employee.fullName != null ? loan.employee.fullName : '--'}">Full Name</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Loan Type</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${loan.loanType != null ? #strings.capitalize(#strings.toLowerCase(loan.loanType)) : '--'}">Personal</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Requested Amount</dt>
+                                    <dd class="col-7 fw-semibold mb-0" th:text="${principalText}">BDT 0.00</dd>
+                                    <dt class="col-5 fw-normal text-secondary">Current Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status fa-status-neutral" th:text="${loan.loanStatus}">DRAFT</span></dd>
+                                    <dt class="col-5 fw-normal text-secondary">Eligibility Status</dt>
+                                    <dd class="col-7 mb-0"><span class="fa-status" th:classappend="${e == 'ELIGIBLE'} ? 'fa-status-success' : (${e == 'NOT_ELIGIBLE'} ? 'fa-status-danger' : 'fa-status-neutral')" th:text="${loan.eligibilityStatus != null ? loan.eligibilityStatus : '--'}">--</span></dd>
+                                </dl>
+                                <p class="mb-0" id="cancelLoanDesc">This loan will be marked <strong>CANCELLED</strong> and removed from the active loan workflow. This action cannot be used once the loan enters review or later stages.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Loan</button>
+                                <button type="submit" class="fa-btn fa-btn-danger">Cancel Loan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- 👆 END OF NEW MODAL 👆 -->
+        </main>
+
+
+        <!-- Admin dashboard footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

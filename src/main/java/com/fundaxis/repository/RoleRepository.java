@@ -52,4 +52,12 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     // These may be introduced later if FundAxis requires
     // additional business-specific roles.
     List<Role> findBySystemRoleFalse();
+
+
+    Optional<Role> findByRoleName(String roleName);
+
+
+
+
+
 }

@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+
+<!--
+    ============================================================
+    FundAxis - Admin Role Management
+    File:
+    src/main/resources/templates/admin/roles.html
+
+    Access:
+    ADMIN only
+
+    Controller:
+    AdminRoleController
+
+    Main route:
+    GET /admin/roles
+
+    Supported query parameters:
+    keyword
+    status
+    roleType
+
+    Model attributes:
+    roles
+    totalRoles
+    activeRoles
+    inactiveRoles
+    systemRoles
+    customRoles
+    keyword
+    selectedStatus
+    selectedRoleType
+
+    Role fields:
+    id
+    roleCode
+    roleName
+    description
+    systemRole
+    active
+    createdAt
+    updatedAt
+    ============================================================
+-->
+
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <meta name="robots"
+          content="noindex, nofollow">
+
+    <title>Role Management | FundAxis</title>
+
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+
+    <!-- FundAxis shared styles -->
+    <link th:href="@{/css/dashboard.css}"
+          rel="stylesheet">
+
+    <link th:href="@{/css/admin-employees.css}"
+          rel="stylesheet">
+
+
+    <!-- Role Management module styles -->
+    <link th:href="@{/css/role.css}"
+          rel="stylesheet">
+
+</head>
+
+
+<body class="fa-body">
+
+
+<!-- Accessibility -->
+<a class="fa-skip-link"
+   href="#main-content">
+    Skip to main content
+</a>
+
+
+<div class="fa-shell">
+
+
+    <!-- ========================================================
+         ADMIN SIDEBAR
+         ======================================================== -->
+
+    <aside class="fa-sidebar"
+           id="faSidebar"
+           aria-label="Admin navigation">
+
+
+        <div class="fa-sidebar-brand">
+
+            <a th:href="@{/admin/dashboard}"
+               class="fa-brand-link"
+               aria-label="FundAxis Admin dashboard home">
+
+                <img th:src="@{/images/fundaxis-logo.png}"
+                     alt="FundAxis"
+                     class="fa-brand-logo">
+
+                <span class="fa-brand-text">
+                    FundAxis
+                </span>
+
+            </a>
+
+
+            <button type="button"
+                    class="fa-sidebar-close"
+                    id="faSidebarClose"
+                    aria-label="Close navigation menu">
+
+                <i class="bi bi-x-lg"
+                   aria-hidden="true"></i>
+
+            </button>
+
+        </div>
+
+
+        <nav class="fa-sidebar-nav">
+
+
+            <!-- Dashboard -->
+
+            <p class="fa-nav-heading">
+                Dashboard
+            </p>
+
+
+            <ul class="fa-nav-list">
+
+                <li>
+
+                    <a th:href="@{/admin/dashboard}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-speedometer2"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Dashboard
+                        </span>
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+
+            <!-- Administration -->
+
+            <p class="fa-nav-heading">
+                Administration
+            </p>
+
+
+            <ul class="fa-nav-list">
+
+                <li>
+
+                    <a th:href="@{/admin/employees}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-people"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Employee Management
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/contributions}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-piggy-bank"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Contributions
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/loans}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-cash-coin"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Loans
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/loan-extensions}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-calendar-plus"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Loan Extensions
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/disbursements}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-box-arrow-up-right"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Loan Disbursements
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/repayment-schedules}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-calendar-check"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Repayment Schedules
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/repayments}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-receipt"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Repayments
+                        </span>
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+
+            <!-- Security & Access -->
+
+            <p class="fa-nav-heading">
+                Security &amp; Access
+            </p>
+
+
+            <ul class="fa-nav-list">
+
+                <li>
+
+                    <a th:href="@{/admin/user-accounts}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-person-gear"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            User Accounts
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <a th:href="@{/admin/roles}"
+                       class="fa-nav-link active"
+                       aria-current="page">
+
+                        <i class="bi bi-shield-lock"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Role Management
+                        </span>
+
+                    </a>
+
+                </li>
+
+            </ul>
+
+
+            <!-- Account -->
+
+            <p class="fa-nav-heading">
+                Account
+            </p>
+
+
+            <ul class="fa-nav-list">
+
+                <li>
+
+                    <a th:href="@{/change-password}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-key-fill"
+                           aria-hidden="true"></i>
+
+                        <span>
+                            Change Password
+                        </span>
+
+                    </a>
+
+                </li>
+
+
+                <li>
+
+                    <!-- Spring Security logout -->
+
+                    <form th:action="@{/logout}"
+                          method="post"
+                          class="fa-logout-form">
+
+                        <button type="submit"
+                                class="fa-nav-link fa-nav-button">
+
+                            <i class="bi bi-box-arrow-right"
+                               aria-hidden="true"></i>
+
+                            <span>
+                                Sign Out
+                            </span>
+
+                        </button>
+
+                    </form>
+
+                </li>
+
+            </ul>
+
+
+        </nav>
+
+    </aside>
+
+
+    <!-- Mobile sidebar overlay -->
+    <div class="fa-overlay"
+         id="faOverlay"
+         hidden>
+    </div>
+
+
+
+    <!-- ========================================================
+         MAIN AREA
+         ======================================================== -->
+
+    <div class="fa-main-wrap">
+
+
+        <!-- ====================================================
+             ADMIN TOPBAR
+             ==================================================== -->
+
+        <header class="fa-topbar">
+
+
+            <div class="fa-topbar-left">
+
+                <button type="button"
+                        class="fa-menu-toggle"
+                        id="faMenuToggle"
+                        aria-label="Open navigation menu"
+                        aria-controls="faSidebar"
+                        aria-expanded="false">
+
+                    <i class="bi bi-list"
+                       aria-hidden="true"></i>
+
+                </button>
+
+
+                <span class="fa-topbar-title">
+
+                    FundAxis
+
+                    <span class="fa-topbar-sub d-none d-md-inline">
+                        Employee Fund Management
+                    </span>
+
+                </span>
+
+            </div>
+
+
+
+            <div class="fa-topbar-right">
+
+
+                <!-- Notification placeholder -->
+
+                <button type="button"
+                        class="fa-icon-btn"
+                        aria-label="Notifications">
+
+                    <i class="bi bi-bell"
+                       aria-hidden="true"></i>
+
+                </button>
+
+
+
+                <!-- Signed-in ADMIN profile -->
+
+                <div class="dropdown">
+
+
+                    <button class="fa-profile-btn dropdown-toggle"
+                            type="button"
+                            id="faProfileMenu"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                        <span class="fa-avatar"
+                              aria-hidden="true">
+
+                            <i class="bi bi-person-fill"></i>
+
+                        </span>
+
+
+                        <span class="fa-profile-meta d-none d-sm-flex">
+
+                            <span class="fa-profile-name"
+                                  sec:authentication="name">
+                                username
+                            </span>
+
+                            <span class="fa-role-badge fa-role-admin">
+                                ADMIN
+                            </span>
+
+                        </span>
+
+                    </button>
+
+
+
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown"
+                        aria-labelledby="faProfileMenu">
+
+
+                        <li class="fa-dropdown-header">
+
+                            <span class="fa-profile-name"
+                                  sec:authentication="name">
+                                username
+                            </span>
+
+                            <span class="fa-role-badge fa-role-admin">
+                                ADMIN
+                            </span>
+
+                        </li>
+
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+                        <li>
+
+                            <a class="dropdown-item"
+                               th:href="@{/profile}">
+
+                                <i class="bi bi-person-badge"
+                                   aria-hidden="true"></i>
+
+                                My Profile
+
+                            </a>
+
+                        </li>
+
+
+                        <li>
+
+                            <a class="dropdown-item"
+                               th:href="@{/change-password}">
+
+                                <i class="bi bi-key"
+                                   aria-hidden="true"></i>
+
+                                Change Password
+
+                            </a>
+
+                        </li>
+
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+                        <li>
+
+                            <form th:action="@{/logout}"
+                                  method="post">
+
+                                <button type="submit"
+                                        class="dropdown-item fa-dropdown-danger">
+
+                                    <i class="bi bi-box-arrow-right"
+                                       aria-hidden="true"></i>
+
+                                    Sign Out
+
+                                </button>
+
+                            </form>
+
+                        </li>
+
+
+                    </ul>
+
+                </div>
+
+
+            </div>
+
+        </header>
+
+
+
+        <!-- ====================================================
+             PAGE CONTENT
+             ==================================================== -->
+
+        <main class="fa-content"
+              id="main-content"
+              tabindex="-1"
+
+              th:with="kw=${keyword != null ? #strings.trim(keyword) : ''},
+                       st=${selectedStatus != null ? selectedStatus : ''},
+                       rt=${selectedRoleType != null ? selectedRoleType : ''},
+                       hasKeyword=${!#strings.isEmpty(kw)},
+                       hasStatus=${!#strings.isEmpty(st)},
+                       hasRoleType=${!#strings.isEmpty(rt)},
+                       hasFilter=${hasKeyword or hasStatus or hasRoleType},
+                       resultCount=${roles != null ? #lists.size(roles) : 0}">
+
+
+            <!-- ================================================
+                 PAGE HEADER
+                 ================================================ -->
+
+            <div class="fa-page-header flex-wrap">
+
+
+                <div>
+
+                    <h1 class="fa-page-title">
+                        Role Management
+                    </h1>
+
+
+                    <p class="fa-page-subtitle">
+                        Manage FundAxis security roles and role availability.
+                    </p>
+
+
+                    <nav aria-label="Breadcrumb">
+
+                        <ol class="breadcrumb fa-breadcrumb">
+
+                            <li class="breadcrumb-item">
+
+                                <a th:href="@{/admin/dashboard}">
+                                    Dashboard
+                                </a>
+
+                            </li>
+
+
+                            <li class="breadcrumb-item active"
+                                aria-current="page">
+
+                                Role Management
+
+                            </li>
+
+                        </ol>
+
+                    </nav>
+
+                </div>
+
+
+
+                <!-- Create custom role -->
+
+                <a th:href="@{/admin/roles/new}"
+                   class="fa-btn fa-btn-primary">
+
+                    <i class="bi bi-plus-circle"
+                       aria-hidden="true"></i>
+
+                    Create Custom Role
+
+                </a>
+
+
+            </div>
+
+
+
+            <!-- ================================================
+                 FLASH MESSAGES
+                 ================================================ -->
+
+            <div class="fa-alerts"
+                 aria-live="polite">
+
+
+                <!-- Success -->
+
+                <div class="alert alert-success alert-dismissible fade show fa-alert"
+                     role="alert"
+                     th:if="${successMessage}">
+
+                    <i class="bi bi-check-circle-fill"
+                       aria-hidden="true"></i>
+
+                    <span th:text="${successMessage}">
+                        Operation completed successfully.
+                    </span>
+
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+
+
+                <!-- Error -->
+
+                <div class="alert alert-danger alert-dismissible fade show fa-alert"
+                     role="alert"
+                     th:if="${errorMessage}">
+
+                    <i class="bi bi-exclamation-octagon-fill"
+                       aria-hidden="true"></i>
+
+                    <span th:text="${errorMessage}">
+                        An error occurred.
+                    </span>
+
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+
+
+                <!-- Warning -->
+
+                <div class="alert alert-warning alert-dismissible fade show fa-alert"
+                     role="alert"
+                     th:if="${warningMessage}">
+
+                    <i class="bi bi-exclamation-triangle-fill"
+                       aria-hidden="true"></i>
+
+                    <span th:text="${warningMessage}">
+                        Warning.
+                    </span>
+
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+
+
+                <!-- Information -->
+
+                <div class="alert alert-info alert-dismissible fade show fa-alert"
+                     role="alert"
+                     th:if="${infoMessage}">
+
+                    <i class="bi bi-info-circle-fill"
+                       aria-hidden="true"></i>
+
+                    <span th:text="${infoMessage}">
+                        Information.
+                    </span>
+
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- ================================================
+                 SECURITY INFORMATION
+                 ================================================ -->
+
+            <section class="role-system-notice mb-3"
+                     aria-label="Role management security information">
+
+
+                <i class="bi bi-shield-lock-fill"
+                   aria-hidden="true"></i>
+
+
+                <div>
+
+                    <strong>
+                        Security-sensitive administration
+                    </strong>
+
+                    <div class="small mt-1">
+
+                        System roles are protected because their codes are used by
+                        FundAxis authorization rules. Custom roles can be created
+                        and managed by authorized administrators.
+
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- ================================================
+                 SUMMARY CARDS
+                 ================================================ -->
+
+            <section class="row g-3 mb-3"
+                     aria-label="Role summary">
+
+
+                <!-- Total -->
+
+                <div class="col-12 col-sm-6 col-xl">
+
+                    <div class="role-card role-summary-card">
+
+                        <span class="role-summary-icon">
+
+                            <i class="bi bi-shield"
+                               aria-hidden="true"></i>
+
+                        </span>
+
+
+                        <div>
+
+                            <p class="role-summary-label">
+                                Total Roles
+                            </p>
+
+                            <p class="role-summary-value"
+                               th:text="${totalRoles != null ? totalRoles : 0}">
+                                0
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Active -->
+
+                <div class="col-12 col-sm-6 col-xl">
+
+                    <div class="role-card role-summary-card">
+
+                        <span class="role-summary-icon">
+
+                            <i class="bi bi-check-circle"
+                               aria-hidden="true"></i>
+
+                        </span>
+
+
+                        <div>
+
+                            <p class="role-summary-label">
+                                Active
+                            </p>
+
+                            <p class="role-summary-value"
+                               th:text="${activeRoles != null ? activeRoles : 0}">
+                                0
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Inactive -->
+
+                <div class="col-12 col-sm-6 col-xl">
+
+                    <div class="role-card role-summary-card">
+
+                        <span class="role-summary-icon">
+
+                            <i class="bi bi-pause-circle"
+                               aria-hidden="true"></i>
+
+                        </span>
+
+
+                        <div>
+
+                            <p class="role-summary-label">
+                                Inactive
+                            </p>
+
+                            <p class="role-summary-value"
+                               th:text="${inactiveRoles != null ? inactiveRoles : 0}">
+                                0
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- System Roles -->
+
+                <div class="col-12 col-sm-6 col-xl">
+
+                    <div class="role-card role-summary-card">
+
+                        <span class="role-summary-icon">
+
+                            <i class="bi bi-lock-fill"
+                               aria-hidden="true"></i>
+
+                        </span>
+
+
+                        <div>
+
+                            <p class="role-summary-label">
+                                System Roles
+                            </p>
+
+                            <p class="role-summary-value"
+                               th:text="${systemRoles != null ? systemRoles : 0}">
+                                0
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Custom Roles -->
+
+                <div class="col-12 col-sm-6 col-xl">
+
+                    <div class="role-card role-summary-card">
+
+                        <span class="role-summary-icon">
+
+                            <i class="bi bi-person-badge"
+                               aria-hidden="true"></i>
+
+                        </span>
+
+
+                        <div>
+
+                            <p class="role-summary-label">
+                                Custom Roles
+                            </p>
+
+                            <p class="role-summary-value"
+                               th:text="${customRoles != null ? customRoles : 0}">
+                                0
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- ================================================
+                 SEARCH / FILTER TOOLBAR
+                 ================================================ -->
+
+            <section class="fa-card role-toolbar mb-3"
+                     aria-label="Search and filter roles">
+
+
+                <form method="get"
+                      th:action="@{/admin/roles}"
+                      class="row g-3 align-items-end"
+                      role="search">
+
+
+                    <!-- Search -->
+
+                    <div class="col-12 col-lg-5">
+
+                        <label for="roleSearch"
+                               class="fa-label">
+
+                            Search
+
+                        </label>
+
+
+                        <div class="input-group">
+
+                            <input type="search"
+                                   id="roleSearch"
+                                   name="keyword"
+                                   class="form-control fa-input"
+                                   placeholder="Search code, name or description"
+                                   autocomplete="off"
+                                   maxlength="100"
+                                   th:value="${kw}">
+
+
+                            <button type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-clear-target="roleSearch"
+                                    aria-label="Clear search">
+
+                                <i class="bi bi-x-lg"
+                                   aria-hidden="true"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- Status -->
+
+                    <div class="col-12 col-sm-6 col-lg-2">
+
+                        <label for="statusFilter"
+                               class="fa-label">
+
+                            Status
+
+                        </label>
+
+
+                        <select id="statusFilter"
+                                name="status"
+                                class="form-select fa-input"
+                                data-role-filter>
+
+                            <option value="">
+                                All Statuses
+                            </option>
+
+
+                            <option value="ACTIVE"
+                                    th:selected="${st == 'ACTIVE'}">
+
+                                Active
+
+                            </option>
+
+
+                            <option value="INACTIVE"
+                                    th:selected="${st == 'INACTIVE'}">
+
+                                Inactive
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- Role Type -->
+
+                    <div class="col-12 col-sm-6 col-lg-2">
+
+                        <label for="roleTypeFilter"
+                               class="fa-label">
+
+                            Role Type
+
+                        </label>
+
+
+                        <select id="roleTypeFilter"
+                                name="roleType"
+                                class="form-select fa-input"
+                                data-role-filter>
+
+                            <option value="">
+                                All Types
+                            </option>
+
+
+                            <option value="SYSTEM"
+                                    th:selected="${rt == 'SYSTEM'}">
+
+                                System
+
+                            </option>
+
+
+                            <option value="CUSTOM"
+                                    th:selected="${rt == 'CUSTOM'}">
+
+                                Custom
+
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+
+                    <!-- Search button -->
+
+                    <div class="col-12 col-sm-6 col-lg-1 d-grid">
+
+                        <button type="submit"
+                                class="fa-btn fa-btn-primary">
+
+                            <i class="bi bi-search"
+                               aria-hidden="true"></i>
+
+                            <span class="visually-hidden">
+                                Search
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- Clear filters -->
+
+                    <div class="col-12 col-sm-6 col-lg-2 d-grid">
+
+                        <a th:href="@{/admin/roles}"
+                           class="fa-btn fa-btn-outline">
+
+                            Clear Filters
+
+                        </a>
+
+                    </div>
+
+
+                </form>
+
+
+
+                <!-- Filter status -->
+
+                <div class="role-filter-meta"
+                     th:if="${hasFilter}">
+
+                    Showing filtered role-management results.
+
+                    <span th:if="${hasKeyword}">
+
+                        Search:
+
+                        <strong th:text="${kw}">
+                            keyword
+                        </strong>
+
+                    </span>
+
+
+                    <span th:if="${hasStatus}">
+
+                        &nbsp; Status:
+
+                        <strong th:text="${st}">
+                            ACTIVE
+                        </strong>
+
+                    </span>
+
+
+                    <span th:if="${hasRoleType}">
+
+                        &nbsp; Type:
+
+                        <strong th:text="${rt}">
+                            SYSTEM
+                        </strong>
+
+                    </span>
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- ================================================
+                 ROLE LIST
+                 ================================================ -->
+
+            <section class="fa-card"
+                     aria-labelledby="roleListTitle">
+
+
+                <!-- Table header -->
+
+                <div class="fa-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+
+
+                    <h2 class="fa-card-title"
+                        id="roleListTitle">
+
+                        FundAxis Roles
+
+                    </h2>
+
+
+                    <p class="mb-0 text-secondary small"
+                       role="status"
+                       aria-live="polite">
+
+                        Showing
+
+                        <strong th:text="${resultCount}">
+                            0
+                        </strong>
+
+                        <span th:text="${resultCount == 1 ? 'role' : 'roles'}">
+                            roles
+                        </span>
+
+                    </p>
+
+
+                </div>
+
+
+
+                <!-- Responsive role table -->
+
+                <div class="table-responsive">
+
+
+                    <table class="table fa-table align-middle mb-0">
+
+
+                        <caption class="visually-hidden">
+                            FundAxis security roles
+                        </caption>
+
+
+
+                        <thead>
+
+                        <tr>
+
+                            <th scope="col">
+                                Role Code
+                            </th>
+
+                            <th scope="col">
+                                Role Name
+                            </th>
+
+                            <th scope="col">
+                                Description
+                            </th>
+
+                            <th scope="col">
+                                Type
+                            </th>
+
+                            <th scope="col">
+                                Status
+                            </th>
+
+                            <th scope="col">
+                                Updated
+                            </th>
+
+                            <th scope="col">
+                                Actions
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+
+
+                        <tbody>
+
+
+                        <!-- ====================================
+                             ROLE ROW
+                             ==================================== -->
+
+                        <tr th:each="role : ${roles}">
+
+
+                            <!-- Role Code -->
+
+                            <td class="role-table-code">
+
+                                <span class="role-code-badge"
+                                      th:text="${role.roleCode != null ? role.roleCode : '--'}">
+
+                                    ADMIN
+
+                                </span>
+
+                            </td>
+
+
+
+                            <!-- Role Name -->
+
+                            <td class="role-table-name">
+
+                                <div class="role-name-display">
+
+                                    <span class="role-name-main"
+                                          th:text="${role.roleName != null ? role.roleName : '--'}">
+
+                                        Administrator
+
+                                    </span>
+
+
+                                    <span class="role-name-sub"
+                                          th:if="${role.systemRole == true}">
+
+                                        Protected FundAxis role
+                                    </span>
+
+
+                                    <span class="role-name-sub"
+                                          th:if="${role.systemRole != true}">
+
+                                        Custom role
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+
+
+                            <!-- Description -->
+
+                            <td class="role-table-description">
+
+                                <span class="role-table-description-text"
+                                      th:text="${role.description != null and !#strings.isEmpty(role.description)
+                                                ? role.description
+                                                : 'No description provided.'}">
+
+                                    Role description.
+
+                                </span>
+
+                            </td>
+
+
+
+                            <!-- Role Type -->
+
+                            <td>
+
+
+                                <!-- System -->
+
+                                <span class="role-type role-type-system"
+                                      th:if="${role.systemRole == true}">
+
+                                    <i class="bi bi-lock-fill"
+                                       aria-hidden="true"></i>
+
+                                    System
+                                </span>
+
+
+
+                                <!-- Custom -->
+
+                                <span class="role-type role-type-custom"
+                                      th:if="${role.systemRole != true}">
+
+                                    <i class="bi bi-person-badge"
+                                       aria-hidden="true"></i>
+
+                                    Custom
+                                </span>
+
+
+                            </td>
+
+
+
+                            <!-- Status -->
+
+                            <td>
+
+
+                                <!-- Active -->
+
+                                <span class="role-status role-status-active"
+                                      th:if="${role.active == true}">
+
+                                    <i class="bi bi-check-circle-fill"
+                                       aria-hidden="true"></i>
+
+                                    Active
+                                </span>
+
+
+
+                                <!-- Inactive -->
+
+                                <span class="role-status role-status-inactive"
+                                      th:if="${role.active != true}">
+
+                                    <i class="bi bi-pause-circle-fill"
+                                       aria-hidden="true"></i>
+
+                                    Inactive
+                                </span>
+
+
+                            </td>
+
+
+
+                            <!-- Last Updated -->
+
+                            <td class="role-nowrap">
+
+                                <span th:if="${role.updatedAt != null}"
+                                      th:text="${#temporals.format(role.updatedAt, 'dd MMM yyyy, HH:mm')}">
+
+                                    18 Oct 2026, 14:30
+
+                                </span>
+
+
+                                <span th:if="${role.updatedAt == null}"
+                                      class="text-secondary">
+
+                                    --
+
+                                </span>
+
+                            </td>
+
+
+
+                            <!-- Actions -->
+
+                            <td>
+
+                                <div class="role-table-actions">
+
+
+                                    <!-- View Details -->
+
+                                    <a th:href="@{/admin/roles/{id}(id=${role.id})}"
+                                       class="fa-btn fa-btn-outline fa-btn-sm"
+                                       th:aria-label="${'View role ' + (role.roleCode != null ? role.roleCode : '')}">
+
+                                        <i class="bi bi-eye"
+                                           aria-hidden="true"></i>
+
+                                        View
+
+                                    </a>
+
+
+
+                                    <!-- Edit -->
+
+                                    <a th:href="@{/admin/roles/{id}/edit(id=${role.id})}"
+                                       class="fa-btn fa-btn-outline fa-btn-sm"
+                                       th:aria-label="${'Edit role ' + (role.roleCode != null ? role.roleCode : '')}">
+
+                                        <i class="bi bi-pencil"
+                                           aria-hidden="true"></i>
+
+                                        Edit
+
+                                    </a>
+
+
+                                </div>
+
+                            </td>
+
+
+                        </tr>
+
+
+
+                        <!-- ====================================
+                             EMPTY STATE
+                             ==================================== -->
+
+                        <tr th:if="${roles == null or roles.isEmpty()}">
+
+                            <td colspan="7"
+                                class="text-center text-secondary py-5">
+
+
+                                <i class="bi bi-shield-x role-empty-icon d-block mb-2"
+                                   aria-hidden="true"></i>
+
+
+                                <h3 class="h6 text-dark mb-2">
+
+                                    No roles found
+
+                                </h3>
+
+
+                                <p class="mb-3"
+                                   th:if="${hasFilter}">
+
+                                    No FundAxis roles match the selected search criteria.
+
+                                </p>
+
+
+                                <p class="mb-3"
+                                   th:unless="${hasFilter}">
+
+                                    No roles are currently available.
+
+                                </p>
+
+
+
+                                <!-- Clear filtered results -->
+
+                                <a th:if="${hasFilter}"
+                                   th:href="@{/admin/roles}"
+                                   class="fa-btn fa-btn-outline fa-btn-sm">
+
+                                    Clear Filters
+
+                                </a>
+
+
+
+                                <!-- Create initial custom role -->
+
+                                <a th:unless="${hasFilter}"
+                                   th:href="@{/admin/roles/new}"
+                                   class="fa-btn fa-btn-primary fa-btn-sm">
+
+                                    <i class="bi bi-plus-circle"
+                                       aria-hidden="true"></i>
+
+                                    Create Custom Role
+
+                                </a>
+
+
+                            </td>
+
+                        </tr>
+
+
+                        </tbody>
+
+
+                    </table>
+
+
+                </div>
+
+
+            </section>
+
+
+
+            <!-- ================================================
+                 ROLE MANAGEMENT GUIDANCE
+                 ================================================ -->
+
+            <section class="role-card mt-3">
+
+
+                <div class="fa-card-header">
+
+                    <h2 class="fa-card-title">
+
+                        <i class="bi bi-info-circle me-1"
+                           aria-hidden="true"></i>
+
+                        Role Management Rules
+
+                    </h2>
+
+                </div>
+
+
+
+                <div class="role-security-grid">
+
+
+                    <!-- System role rule -->
+
+                    <div class="role-security-box role-security-box-highlight">
+
+                        <span class="role-security-label">
+                            SYSTEM ROLES
+                        </span>
+
+                        <div class="role-security-value mb-2">
+                            Protected
+                        </div>
+
+                        <p class="small text-secondary mb-0">
+
+                            Core FundAxis roles use stable role codes for
+                            authorization and cannot be deactivated through
+                            normal role management.
+
+                        </p>
+
+                    </div>
+
+
+
+                    <!-- Custom role rule -->
+
+                    <div class="role-security-box">
+
+                        <span class="role-security-label">
+                            CUSTOM ROLES
+                        </span>
+
+                        <div class="role-security-value mb-2">
+                            Administrator Managed
+                        </div>
+
+                        <p class="small text-secondary mb-0">
+
+                            Custom roles can be created, updated, activated,
+                            or deactivated according to FundAxis access-control
+                            requirements.
+
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+            </section>
+
+
+        </main>
+
+
+
+        <!-- ====================================================
+             FOOTER
+             ==================================================== -->
+
+        <footer class="fa-footer">
+
+            <span>
+                FundAxis &mdash; Employee Fund Management System
+            </span>
+
+            <span>
+                Authorized Internal Use Only
+            </span>
+
+        </footer>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/dashboard.js}"></script>
+
+<script th:src="@{/js/role.js}"></script>
+
+
+</body>
+</html>

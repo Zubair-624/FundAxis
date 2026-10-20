@@ -1,0 +1,366 @@
+<!--- FundAxis Admin Contribution Form (ADMIN only; backend authorization stays authoritative).
+      ADD mode:  GET /admin/contributions/new                 -> POST /admin/contributions
+      EDIT mode: GET /admin/contributions/{id}/edit (model "editMode" = true) -> POST /admin/contributions/{id}/update
+      Edit mode is for PENDING contributions only (the backend decides). Only month and amount are editable;
+      the employee, status, payment date, audit timestamps and record id are never posted from the form.
+      On a failed update, re-render with the loaded contribution (id and employee set) so the page can show the
+      read-only Employee ID and build its links.
+      Expected model attributes:
+        contribution     empty Contribution object on GET (and the bound object when the form is re-rendered after errors)
+        errorMessage     optional business error (employee not found, duplicate month, ...)
+      The employee is identified ONLY by the official bank Employee ID (request parameter "employeeId");
+      the database Employee id, status, payment date and audit timestamps are never sent from this form. --->
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title th:text="${editMode != null and editMode} ? 'Edit Contribution | FundAxis' : 'Add Contribution | FundAxis'">Add Contribution | FundAxis</title>
+
+    <!-- Bootstrap 5 + Bootstrap Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Shared FundAxis dashboard styles + the button / form-control / note styles from the Employee Management page -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+</head>
+<body class="fa-body">
+
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<div class="fa-shell">
+
+    <!-- Admin sidebar navigation -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+        <div class="fa-sidebar-brand">
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="fa-sidebar-nav">
+
+            <p class="fa-nav-heading">Dashboard</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Administration</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions stays the active item on this page -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link active" aria-current="page"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Account</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span>
+                    </a>
+                </li>
+                <li>
+                    <!-- FundAxis logout form (sidebar) -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile overlay behind sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <div class="fa-main-wrap">
+
+        <!-- FundAxis Admin topbar -->
+        <header class="fa-topbar">
+            <div class="fa-topbar-left">
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle"
+                        aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+
+            <div class="fa-topbar-right">
+                <!-- Notification placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications (none)">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <li class="fa-dropdown-header">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- currency: display label only (the same value the Contribution list page uses) -->
+        <!-- isEdit is true only when the controller sets editMode = true -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="currency='BDT', isEdit=${editMode != null and editMode}">
+
+            <!-- FundAxis Admin Add Contribution -->
+            <div class="fa-page-header">
+                <div>
+                    <h1 class="fa-page-title" th:text="${isEdit} ? 'Edit Contribution' : 'Add Contribution'">Add Contribution</h1>
+                    <p class="fa-page-subtitle"
+                       th:text="${isEdit} ? 'Update this pending contribution record.' : 'Create a monthly contribution record for an employee.'">Create a monthly contribution record for an employee.</p>
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a th:href="@{/admin/contributions}">Contribution Management</a></li>
+                            <!-- Add:  Dashboard / Contribution Management / Add Contribution
+                                 Edit: Dashboard / Contribution Management / Contribution Details / Edit Contribution -->
+                            <li class="breadcrumb-item" th:if="${isEdit}">
+                                <a th:href="@{/admin/contributions/{id}(id=${contribution.id})}">Contribution Details</a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page"
+                                th:text="${isEdit} ? 'Edit Contribution' : 'Add Contribution'">Add Contribution</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Backend business errors (employee not found, duplicate month, ...) -->
+            <div class="fa-alerts" aria-live="polite">
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage != null}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-9">
+
+                    <!-- POST /admin/contributions (CSRF token added by th:action).
+                         The browser validates required / min / pattern for quick feedback; the backend still validates everything. -->
+                    <form method="post" id="contributionForm"
+                          th:object="${contribution}"
+                          th:action="${isEdit}
+                              ? @{/admin/contributions/{id}/update(id=${contribution.id})}
+                              : @{/admin/contributions}">
+
+                        <section class="fa-card" aria-labelledby="contributionFormTitle">
+
+                            <div class="fa-card-header">
+                                <h2 class="fa-card-title" id="contributionFormTitle">Contribution Details</h2>
+                            </div>
+
+                            <div class="p-3 p-md-4">
+
+                                <!-- Form-level validation errors from the backend -->
+                                <div class="alert alert-danger fa-alert" role="alert" th:if="${#fields.hasGlobalErrors()}">
+                                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                                    <div>
+                                        <p class="mb-0" th:each="err : ${#fields.globalErrors()}" th:text="${err}">Validation error.</p>
+                                    </div>
+                                </div>
+
+                                <p class="text-secondary small mb-4">
+                                    Fields marked with <span class="text-danger" aria-hidden="true">*</span> are required.
+                                </p>
+
+                                <!-- ======================= EMPLOYEE ======================= -->
+                                <fieldset class="mb-4">
+                                    <legend class="h6 text-uppercase text-secondary mb-3">Employee</legend>
+
+                                    <div class="row g-3">
+                                        <!-- EDIT mode: official Employee ID shown read-only.
+                                             It has no name attribute, so it is never submitted and the employee cannot be reassigned. -->
+                                        <div class="col-12 col-md-6" th:if="${isEdit}">
+                                            <label for="employeeIdReadonly" class="fa-label">Employee ID</label>
+                                            <input type="text" id="employeeIdReadonly"
+                                                   class="form-control fa-input bg-body-secondary"
+                                                   th:value="${contribution.employee != null ? contribution.employee.employeeId : ''}"
+                                                   readonly aria-describedby="employeeIdReadonlyHelp">
+                                            <div class="form-text" id="employeeIdReadonlyHelp">
+                                                The employee cannot be changed.
+                                                <span th:if="${contribution.employee != null and contribution.employee.fullName != null}">
+                                                    Employee: <strong th:text="${contribution.employee.fullName}">Full Name</strong>
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <!-- ADD mode: editable official Employee ID -->
+                                        <div class="col-12 col-md-6" th:unless="${isEdit}">
+                                            <label for="employeeId" class="fa-label">
+                                                Employee ID <span class="text-danger" aria-hidden="true">*</span>
+                                                <span class="visually-hidden">(required)</span>
+                                            </label>
+                                            <!-- Official bank Employee ID, posted as the "employeeId" parameter.
+                                                 After a failed save the typed value is restored from the request parameter. -->
+                                            <input type="text" id="employeeId" name="employeeId"
+                                                   class="form-control fa-input"
+                                                   placeholder="e.g. EMP003"
+                                                   required autocomplete="off" spellcheck="false" autofocus
+                                                   th:value="${employeeId != null ? employeeId : (param.employeeId != null ? param.employeeId[0] : '')}"
+                                                   aria-describedby="employeeIdHelp">
+                                            <div class="form-text" id="employeeIdHelp">
+                                                Enter the employee's official bank Employee ID.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+
+                                <!-- ==================== CONTRIBUTION DETAILS ==================== -->
+                                <fieldset>
+                                    <legend class="h6 text-uppercase text-secondary mb-3">Contribution</legend>
+
+                                    <div class="row g-3">
+
+                                        <!-- Contribution month.
+                                             The visible month picker has no name: contributionMonth.js copies its value
+                                             (yyyy-MM) as yyyy-MM-01 into the hidden "contributionMonth" field on submit. -->
+                                        <div class="col-12 col-md-6">
+                                            <label for="contributionMonthInput" class="fa-label">
+                                                Contribution Month <span class="text-danger" aria-hidden="true">*</span>
+                                                <span class="visually-hidden">(required)</span>
+                                            </label>
+                                            <input type="month" id="contributionMonthInput"
+                                                   class="form-control fa-input"
+                                                   required pattern="\d{4}-(0[1-9]|1[0-2])" placeholder="YYYY-MM"
+                                                   th:value="${contribution != null and contribution.contributionMonth != null ? #temporals.format(contribution.contributionMonth, 'yyyy-MM') : ''}"
+                                                   th:classappend="${#fields.hasErrors('contributionMonth')} ? 'is-invalid'"
+                                                   aria-describedby="contributionMonthHelp contributionMonthError">
+                                            <input type="hidden" id="contributionMonth" name="contributionMonth">
+                                            <div class="form-text" id="contributionMonthHelp">
+                                                The contribution is recorded for the selected month.
+                                            </div>
+                                            <div class="invalid-feedback" id="contributionMonthError"
+                                                 th:if="${#fields.hasErrors('contributionMonth')}"
+                                                 th:errors="*{contributionMonth}">
+                                                Contribution month error.
+                                            </div>
+                                        </div>
+
+                                        <!-- Contribution amount -->
+                                        <div class="col-12 col-md-6">
+                                            <label for="contributionAmount" class="fa-label">
+                                                Contribution Amount <span class="text-danger" aria-hidden="true">*</span>
+                                                <span class="visually-hidden">(required)</span>
+                                            </label>
+                                            <input type="number" id="contributionAmount"
+                                                   class="form-control fa-input"
+                                                   th:field="*{contributionAmount}"
+                                                   step="0.01" min="0.01" inputmode="decimal"
+                                                   placeholder="0.00" required
+                                                   th:classappend="${#fields.hasErrors('contributionAmount')} ? 'is-invalid'"
+                                                   aria-describedby="contributionAmountHelp contributionAmountError">
+                                            <div class="form-text" id="contributionAmountHelp">
+                                                Amount in <span th:text="${currency}">BDT</span>, minimum 0.01.
+                                            </div>
+                                            <div class="invalid-feedback" id="contributionAmountError"
+                                                 th:if="${#fields.hasErrors('contributionAmount')}"
+                                                 th:errors="*{contributionAmount}">
+                                                Contribution amount error.
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </fieldset>
+
+                                <!-- Business rule note -->
+                                <!-- EDIT mode note -->
+                                <div class="fa-modal-employee mt-4 mb-0" th:if="${isEdit}">
+                                    <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>
+                                    Only pending contributions can be edited. Employee, status and payment
+                                    date cannot be changed here, and a contribution month already used by
+                                    this employee is not allowed.
+                                </div>
+
+                                <!-- ADD mode note -->
+                                <div class="fa-modal-employee mt-4 mb-0" th:unless="${isEdit}">
+                                    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+                                    New contribution records are created according to FundAxis contribution
+                                    business rules. Duplicate contribution months for the same employee
+                                    are not allowed.
+                                </div>
+                            </div>
+
+                            <!-- Form actions -->
+                            <div class="fa-table-footer justify-content-end">
+                                <!-- Cancel - Add mode: back to the contribution list -->
+                                <a th:unless="${isEdit}" th:href="@{/admin/contributions}"
+                                   class="fa-btn fa-btn-outline flex-fill flex-sm-grow-0">Cancel</a>
+
+                                <!-- Cancel - Edit mode: back to this contribution's details -->
+                                <a th:if="${isEdit}" th:href="@{/admin/contributions/{id}(id=${contribution.id})}"
+                                   class="fa-btn fa-btn-outline flex-fill flex-sm-grow-0">Cancel</a>
+                                <button type="submit" id="saveContributionButton" class="fa-btn fa-btn-primary flex-fill flex-sm-grow-0">
+                                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                                    <span id="saveContributionButtonText"
+                                          th:text="${isEdit} ? 'Update Contribution' : 'Save Contribution'">Save Contribution</span>
+                                </button>
+                            </div>
+
+                        </section>
+                    </form>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- Admin dashboard footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+<script th:src="@{/js/admin-contribution-form.js}"></script>
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<!--/* Repayment Schedule details: GET /admin/repayment-schedules/{id}
+     Model: schedule, loanSchedules, loanInstallmentCount, loanTotalPrincipal, loanTotalInterest, loanTotalScheduledAmount,
+            loanTotalPaidAmount, loanTotalRemainingAmount, previousScheduleId, nextScheduleId.
+     Everything else is computed here for display only; nothing is saved. */-->
+<!-- Page root with Thymeleaf and Spring Security namespaces -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head holds metadata and stylesheets -->
+<head>
+    <!-- Use UTF-8 character encoding -->
+    <meta charset="UTF-8">
+    <!-- Make the page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Keep this admin page out of search engines -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Browser tab title -->
+    <title>Repayment Schedule Details | FundAxis</title>
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Load shared FundAxis dashboard styles -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <!-- Load admin employee page styles -->
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <!-- Load the repayment schedule module stylesheet -->
+    <link th:href="@{/css/repayment-schedule.css}" rel="stylesheet">
+</head>
+
+<!-- Body with the shared FundAxis class -->
+<body class="fa-body">
+
+<!-- Accessibility link to jump past the menu -->
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<!-- Outer shell holding sidebar and content -->
+<div class="fa-shell">
+
+    <!-- Left admin sidebar -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+
+        <!-- Sidebar logo area -->
+        <div class="fa-sidebar-brand">
+            <!-- Logo link back to dashboard -->
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <!-- Logo image -->
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <!-- Brand name text -->
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <!-- Button to close sidebar on mobile -->
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+
+        <!-- Sidebar navigation menu -->
+        <nav class="fa-sidebar-nav">
+            <!-- Dashboard group heading -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <!-- Dashboard group list -->
+            <ul class="fa-nav-list">
+                <!-- Dashboard link -->
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <!-- Administration group heading -->
+            <p class="fa-nav-heading">Administration</p>
+            <!-- Administration group list -->
+            <ul class="fa-nav-list">
+                <!-- Employee management link -->
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions link -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans link -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <!-- Loan extensions link -->
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <!-- Loan disbursements link -->
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <!-- Repayment schedules link (current section) -->
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link active" aria-current="page"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <!-- Repayments link -->
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <!-- Security group heading -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <!-- Security group list -->
+            <ul class="fa-nav-list">
+                <!-- User accounts link -->
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <!-- Role management link -->
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <!-- Account group heading -->
+            <p class="fa-nav-heading">Account</p>
+            <!-- Account group list -->
+            <ul class="fa-nav-list">
+                <!-- Change password link -->
+                <li><a th:href="@{/change-password}" class="fa-nav-link"><i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span></a></li>
+                <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                <li>
+                    <!-- Logout form -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <!-- Logout button -->
+                        <button type="submit" class="fa-nav-link fa-nav-button"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span></button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dark overlay shown behind mobile sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <!-- Right side wrapper with topbar and content -->
+    <div class="fa-main-wrap">
+
+        <!-- Top bar -->
+        <header class="fa-topbar">
+            <!-- Left part of top bar -->
+            <div class="fa-topbar-left">
+                <!-- Hamburger button for mobile -->
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle" aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i></button>
+                <!-- App title in top bar -->
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+            <!-- Right part of top bar -->
+            <div class="fa-topbar-right">
+                <!-- Notification button placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i></button>
+                <!-- Profile dropdown wrapper -->
+                <div class="dropdown">
+                    <!-- Button that opens the profile menu -->
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Avatar circle -->
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <!-- Name and role, hidden on tiny screens -->
+                        <span class="fa-profile-meta d-none d-sm-flex"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></span>
+                    </button>
+                    <!-- Dropdown menu items -->
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <!-- Dropdown header with username and role -->
+                        <li class="fa-dropdown-header"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Profile link -->
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <!-- Change password link -->
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                        <li><form th:action="@{/logout}" method="post"><button type="submit" class="dropdown-item fa-dropdown-danger"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out</button></form></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content. Every value below is computed here for display only; nothing is saved. -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="status=${schedule.installmentStatus != null ? schedule.installmentStatus.name() : ''},
+                       isPending=${schedule.installmentStatus != null and schedule.installmentStatus.name() == 'PENDING'},
+                       canMarkOverdue=${schedule.installmentStatus != null and (schedule.installmentStatus.name() == 'PENDING' or schedule.installmentStatus.name() == 'PARTIAL')},
+                       isPast=${schedule.dueDate != null and schedule.dueDate.isBefore(#temporals.createToday())},
+                       isToday=${schedule.dueDate != null and schedule.dueDate.isEqual(#temporals.createToday())},
+                       daysDiff=${schedule.dueDate != null ? schedule.dueDate.toEpochDay() - #temporals.createToday().toEpochDay() : 0},
+                       daysOverdue=${daysDiff < 0 ? 0 - daysDiff : 0},
+                       dueState=${status == 'PAID' ? 'Paid' : (status == 'CANCELLED' ? 'Cancelled' : (isPast ? 'Past Due' : (isToday ? 'Due Today' : 'Upcoming')))},
+                       dueClass=${status == 'PAID' ? 'rs-due-paid' : (status == 'CANCELLED' ? 'rs-due-cancelled' : (isPast ? 'rs-due-past' : (isToday ? 'rs-due-today' : 'rs-due-upcoming')))},
+                       badgeClass=${status == 'PAID' ? 'fa-status-success' : (status == 'OVERDUE' ? 'fa-status-warning' : (status == 'PARTIAL' ? 'fa-status-primary' : (status == 'PENDING' ? 'fa-status-info' : 'fa-status-neutral')))},
+                       positionText=${schedule.installmentNumber != null ? 'Installment ' + schedule.installmentNumber + (loanInstallmentCount != null ? ' of ' + loanInstallmentCount : '') : 'Installment --'},
+                       totalNum=${schedule.totalInstallmentAmount != null ? schedule.totalInstallmentAmount.doubleValue() : 0.0},
+                       paidNum=${schedule.paidAmount != null ? schedule.paidAmount.doubleValue() : 0.0},
+                       remNum=${schedule.remainingAmount != null ? schedule.remainingAmount.doubleValue() : 0.0},
+                       rawPaidPct=${totalNum > 0 ? paidNum * 100 / totalNum : 0.0},
+                       paidPct=${rawPaidPct > 100 ? 100.0 : (rawPaidPct < 0 ? 0.0 : rawPaidPct)},
+                       rawOutPct=${totalNum > 0 ? remNum * 100 / totalNum : 0.0},
+                       outPct=${rawOutPct > 100 ? 100.0 : (rawOutPct < 0 ? 0.0 : rawOutPct)},
+                       finKnown=${schedule.principalAmount != null and schedule.interestAmount != null and schedule.totalInstallmentAmount != null},
+                       finMatch=${finKnown and schedule.principalAmount.add(schedule.interestAmount).compareTo(schedule.totalInstallmentAmount) == 0},
+                       warnPastDue=${status != 'PAID' and status != 'CANCELLED' and status != 'OVERDUE' and isPast and remNum > 0},
+                       warnPartial=${status == 'PARTIAL' and remNum > 0},
+                       warnNoPayDate=${status == 'PAID' and schedule.paymentDate == null},
+                       warnZeroRemaining=${schedule.remainingAmount != null and schedule.remainingAmount.signum() == 0 and status != 'PAID' and status != 'CANCELLED'},
+                       hasWarnings=${warnPastDue or warnPartial or warnNoPayDate or warnZeroRemaining},
+                       hasPlan=${loanSchedules != null and !loanSchedules.isEmpty()}">
+
+            <!-- 1. Page header: title, status badge, loan id and position, edit button, back button -->
+            <div class="fa-page-header flex-wrap">
+                <!-- Title block -->
+                <div>
+                    <!-- Title row with the status badge beside it -->
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <!-- Page title -->
+                        <h1 class="fa-page-title mb-0">Repayment Schedule Details</h1>
+                        <!-- Status badge -->
+                        <span class="fa-status" th:classappend="${badgeClass}" th:text="${status != '' ? status : '--'}">PENDING</span>
+                    </div>
+                    <!-- Loan application ID and installment position, for example "LOAN-10001 · Installment 4 of 12" -->
+                    <p class="fa-page-subtitle" th:text="${(schedule.loan != null and schedule.loan.loanApplicationId != null ? schedule.loan.loanApplicationId : '--') + ' · ' + positionText}">LOAN-10001 · Installment 4 of 12</p>
+                    <!-- Breadcrumb trail -->
+                    <nav aria-label="Breadcrumb">
+                        <!-- Breadcrumb list -->
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <!-- Dashboard crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <!-- Schedules list crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/repayment-schedules}">Repayment Schedules</a></li>
+                            <!-- Current page crumb -->
+                            <li class="breadcrumb-item active" aria-current="page">Schedule Details</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- Header buttons -->
+                <div class="rs-header-actions">
+                    <!-- Edit button, only while the schedule is PENDING -->
+                    <a th:if="${isPending}" th:href="@{/admin/repayment-schedules/{id}/edit(id=${schedule.id})}" class="fa-btn fa-btn-primary"><i class="bi bi-pencil-square" aria-hidden="true"></i> Edit Schedule</a>
+                    <!-- Back button to the list -->
+                    <a th:href="@{/admin/repayment-schedules}" class="fa-btn fa-btn-outline"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Repayment Schedules</a>
+                </div>
+            </div>
+
+            <!-- Area for flash messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <!-- Success alert, shown only if successMessage exists -->
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Error alert, shown only if errorMessage exists -->
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Warning alert, shown only if warningMessage exists -->
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- 2. Health panel, shown only when something needs attention (informational, nothing is changed) -->
+            <section class="rs-health" role="status" aria-label="Schedule health warnings" th:if="${hasWarnings}">
+                <!-- Panel title -->
+                <p class="rs-health-title"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Needs attention</p>
+                <!-- Warning list -->
+                <ul>
+                    <!-- Past due but not yet marked OVERDUE -->
+                    <li th:if="${warnPastDue}">This installment is past due but has not yet been marked OVERDUE.</li>
+                    <!-- Partial payment with a balance left -->
+                    <li th:if="${warnPartial}">This installment has a partial payment and an outstanding balance.</li>
+                    <!-- PAID without a payment date, a data problem -->
+                    <li class="rs-health-error" th:if="${warnNoPayDate}">Data inconsistency: installment is PAID but payment date is missing.</li>
+                    <!-- Nothing remaining but status is not PAID, a data problem -->
+                    <li class="rs-health-error" th:if="${warnZeroRemaining}">Data inconsistency: no remaining amount exists but status is not PAID.</li>
+                </ul>
+            </section>
+
+            <!-- 3. Parent loan information -->
+            <section class="fa-card mb-4" aria-labelledby="parentLoanTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="parentLoanTitle">Parent Loan</h2></div>
+                <!-- Label and value grid -->
+                <dl class="rs-detail-grid">
+                    <!-- Loan application ID -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Loan Application ID</dt><dd class="rs-detail-value" th:text="${schedule.loan != null and schedule.loan.loanApplicationId != null ? schedule.loan.loanApplicationId : '--'}">LOAN-10001</dd></div>
+                    <!-- Employee ID -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Employee ID</dt><dd class="rs-detail-value" th:text="${schedule.loan != null and schedule.loan.employee != null and schedule.loan.employee.employeeId != null ? schedule.loan.employee.employeeId : '--'}">EMP001</dd></div>
+                    <!-- Employee name -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Employee Name</dt><dd class="rs-detail-value" th:text="${schedule.loan != null and schedule.loan.employee != null and schedule.loan.employee.fullName != null ? schedule.loan.employee.fullName : '--'}">Employee Name</dd></div>
+                    <!-- Loan status -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Loan Status</dt><dd class="rs-detail-value" th:text="${schedule.loan != null and schedule.loan.loanStatus != null ? schedule.loan.loanStatus : '--'}">DISBURSED</dd></div>
+                </dl>
+            </section>
+
+            <!-- 4. Current installment overview -->
+            <section class="fa-card mb-4" aria-labelledby="overviewTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="overviewTitle">Installment Overview</h2></div>
+                <!-- Label and value grid -->
+                <dl class="rs-detail-grid">
+                    <!-- Installment position, for example "4 of 12" -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Installment</dt><dd class="rs-detail-value" th:text="${schedule.installmentNumber != null ? schedule.installmentNumber + (loanInstallmentCount != null ? ' of ' + loanInstallmentCount : '') : '--'}">4 of 12</dd></div>
+                    <!-- Due date with days until due or days overdue -->
+                    <div class="rs-detail-item">
+                        <dt class="rs-detail-label">Due Date</dt>
+                        <dd class="rs-detail-value">
+                            <!-- Due date text -->
+                            <span th:text="${schedule.dueDate != null ? #temporals.format(schedule.dueDate, 'dd/MM/yyyy') : '--'}">01/01/2027</span>
+                            <!-- Paid: show the payment date instead of a countdown -->
+                            <span class="rs-due-days" th:if="${status == 'PAID'}" th:text="${schedule.paymentDate != null ? 'Paid on ' + #temporals.format(schedule.paymentDate, 'dd/MM/yyyy') : 'Paid'}">Paid on 01/01/2027</span>
+                            <!-- Active and overdue: show days overdue in red -->
+                            <span class="rs-due-days rs-due-days-late" th:if="${status != 'PAID' and status != 'CANCELLED' and isPast}" th:text="${daysOverdue + (daysOverdue == 1 ? ' day overdue' : ' days overdue')}">8 days overdue</span>
+                            <!-- Active and due today -->
+                            <span class="rs-due-days" th:if="${status != 'PAID' and status != 'CANCELLED' and isToday}">Due today</span>
+                            <!-- Active and still in the future -->
+                            <span class="rs-due-days" th:if="${status != 'PAID' and status != 'CANCELLED' and schedule.dueDate != null and !isPast and !isToday}" th:text="${'Due in ' + daysDiff + (daysDiff == 1 ? ' day' : ' days')}">Due in 12 days</span>
+                        </dd>
+                    </div>
+                    <!-- Due state pill, computed from status and due date -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Due State</dt><dd class="rs-detail-value"><span class="rs-due-state" th:classappend="${dueClass}" th:text="${dueState}">Upcoming</span></dd></div>
+                    <!-- Payment date, empty until paid -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Payment Date</dt><dd class="rs-detail-value" th:text="${schedule.paymentDate != null ? #temporals.format(schedule.paymentDate, 'dd/MM/yyyy') : '--'}">--</dd></div>
+                    <!-- Current status with a plain-language explanation -->
+                    <div class="rs-detail-item">
+                        <dt class="rs-detail-label">Current Status</dt>
+                        <dd class="rs-detail-value">
+                            <!-- Status badge -->
+                            <span class="fa-status" th:classappend="${badgeClass}" th:text="${status != '' ? status : '--'}">PENDING</span>
+                            <!-- Explanation for PENDING -->
+                            <p class="rs-status-note" th:if="${status == 'PENDING'}">Installment is scheduled and no payment has been recorded.</p>
+                            <!-- Explanation for PARTIAL -->
+                            <p class="rs-status-note" th:if="${status == 'PARTIAL'}">Part of the installment has been paid. An outstanding balance remains.</p>
+                            <!-- Explanation for PAID -->
+                            <p class="rs-status-note" th:if="${status == 'PAID'}">Installment has been fully paid.</p>
+                            <!-- Explanation for OVERDUE -->
+                            <p class="rs-status-note" th:if="${status == 'OVERDUE'}">Installment is past due and still has an outstanding balance.</p>
+                            <!-- Explanation for CANCELLED -->
+                            <p class="rs-status-note" th:if="${status == 'CANCELLED'}">Installment schedule has been cancelled.</p>
+                        </dd>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- 5. Financial breakdown -->
+            <section class="fa-card mb-4" aria-labelledby="breakdownTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="breakdownTitle">Financial Breakdown</h2></div>
+                <!-- Ledger: principal plus interest equals total, then paid and remaining -->
+                <div class="rs-ledger">
+                    <!-- Principal row -->
+                    <div class="rs-ledger-row"><span>Principal Amount</span><strong th:text="${schedule.principalAmount != null ? #numbers.formatDecimal(schedule.principalAmount, 1, 'COMMA', 2, 'POINT') : '--'}">900.00</strong></div>
+                    <!-- Interest row -->
+                    <div class="rs-ledger-row"><span>+ Interest Amount</span><strong th:text="${schedule.interestAmount != null ? #numbers.formatDecimal(schedule.interestAmount, 1, 'COMMA', 2, 'POINT') : '--'}">100.00</strong></div>
+                    <!-- Total row with a rule above it -->
+                    <div class="rs-ledger-row rs-ledger-total"><span>= Total Installment Amount</span><strong th:text="${schedule.totalInstallmentAmount != null ? #numbers.formatDecimal(schedule.totalInstallmentAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</strong></div>
+                    <!-- Paid row, set apart from the total -->
+                    <div class="rs-ledger-row rs-ledger-sep"><span>Paid Amount</span><strong th:text="${schedule.paidAmount != null ? #numbers.formatDecimal(schedule.paidAmount, 1, 'COMMA', 2, 'POINT') : '--'}">0.00</strong></div>
+                    <!-- Remaining row -->
+                    <div class="rs-ledger-row"><span>Remaining Amount</span><strong th:text="${schedule.remainingAmount != null ? #numbers.formatDecimal(schedule.remainingAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</strong></div>
+                </div>
+            </section>
+
+            <!-- 6. Payment progress: paid percent and outstanding percent -->
+            <section class="fa-card mb-4" aria-labelledby="progressTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="progressTitle">Payment Progress</h2></div>
+                <!-- Progress block -->
+                <div class="rs-progress-wrap">
+                    <!-- Bootstrap progress bar, width computed from paid divided by total -->
+                    <div class="progress rs-progress" role="progressbar" aria-label="Payment progress"
+                         aria-valuemin="0" aria-valuemax="100"
+                         th:attr="aria-valuenow=${#numbers.formatDecimal(paidPct, 1, 'NONE', 0, 'POINT')}">
+                        <!-- Filled part of the bar -->
+                        <div class="progress-bar" th:style="'width: ' + ${#numbers.formatDecimal(paidPct, 1, 'NONE', 2, 'POINT')} + '%'"></div>
+                    </div>
+                    <!-- Percentages under the bar -->
+                    <div class="rs-progress-legend">
+                        <!-- Percent paid -->
+                        <span><strong th:text="'Paid Progress: ' + ${#numbers.formatDecimal(paidPct, 1, 'NONE', 0, 'POINT')} + '%'">Paid Progress: 40%</strong></span>
+                        <!-- Percent outstanding, from the remaining amount -->
+                        <span class="text-secondary" th:text="'Outstanding: ' + ${#numbers.formatDecimal(outPct, 1, 'NONE', 0, 'POINT')} + '%'">Outstanding: 60%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. Loan repayment plan summary (totals across every installment of this loan) -->
+            <section class="fa-card mb-4" aria-labelledby="planTotalsTitle" th:if="${hasPlan}">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="planTotalsTitle">Loan Repayment Plan Summary</h2></div>
+                <!-- Six total boxes -->
+                <div class="rs-total-grid">
+                    <!-- Number of installments -->
+                    <div class="rs-total-box"><span class="rs-total-label">Number of Installments</span><span class="rs-total-value" th:text="${loanInstallmentCount != null ? loanInstallmentCount : #lists.size(loanSchedules)}">12</span></div>
+                    <!-- Total principal -->
+                    <div class="rs-total-box"><span class="rs-total-label">Total Principal</span><span class="rs-total-value" th:text="${loanTotalPrincipal != null ? #numbers.formatDecimal(loanTotalPrincipal, 1, 'COMMA', 2, 'POINT') : '--'}">10,800.00</span></div>
+                    <!-- Total interest -->
+                    <div class="rs-total-box"><span class="rs-total-label">Total Interest</span><span class="rs-total-value" th:text="${loanTotalInterest != null ? #numbers.formatDecimal(loanTotalInterest, 1, 'COMMA', 2, 'POINT') : '--'}">1,200.00</span></div>
+                    <!-- Total scheduled repayment (highlighted) -->
+                    <div class="rs-total-box rs-total-box-key"><span class="rs-total-label">Total Scheduled Repayment</span><span class="rs-total-value" th:text="${loanTotalScheduledAmount != null ? #numbers.formatDecimal(loanTotalScheduledAmount, 1, 'COMMA', 2, 'POINT') : '--'}">12,000.00</span></div>
+                    <!-- Total paid -->
+                    <div class="rs-total-box"><span class="rs-total-label">Total Paid</span><span class="rs-total-value" th:text="${loanTotalPaidAmount != null ? #numbers.formatDecimal(loanTotalPaidAmount, 1, 'COMMA', 2, 'POINT') : '--'}">3,000.00</span></div>
+                    <!-- Total remaining -->
+                    <div class="rs-total-box"><span class="rs-total-label">Total Remaining</span><span class="rs-total-value" th:text="${loanTotalRemainingAmount != null ? #numbers.formatDecimal(loanTotalRemainingAmount, 1, 'COMMA', 2, 'POINT') : '--'}">9,000.00</span></div>
+                </div>
+            </section>
+
+            <!-- 8. Status counts for this loan, counted from the installment list -->
+            <section class="fa-card mb-4" aria-labelledby="statusCountsTitle" th:if="${hasPlan}">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="statusCountsTitle">Status Counts for This Loan</h2></div>
+                <!-- Five count boxes -->
+                <div class="rs-count-grid">
+                    <!-- Pending count -->
+                    <div class="rs-count-box"><span class="fa-status fa-status-info">Pending</span><strong th:text="${#lists.size(loanSchedules.?[installmentStatus != null and installmentStatus.name() == 'PENDING'])}">0</strong></div>
+                    <!-- Partial count -->
+                    <div class="rs-count-box"><span class="fa-status fa-status-primary">Partial</span><strong th:text="${#lists.size(loanSchedules.?[installmentStatus != null and installmentStatus.name() == 'PARTIAL'])}">0</strong></div>
+                    <!-- Paid count -->
+                    <div class="rs-count-box"><span class="fa-status fa-status-success">Paid</span><strong th:text="${#lists.size(loanSchedules.?[installmentStatus != null and installmentStatus.name() == 'PAID'])}">0</strong></div>
+                    <!-- Overdue count -->
+                    <div class="rs-count-box"><span class="fa-status fa-status-warning">Overdue</span><strong th:text="${#lists.size(loanSchedules.?[installmentStatus != null and installmentStatus.name() == 'OVERDUE'])}">0</strong></div>
+                    <!-- Cancelled count -->
+                    <div class="rs-count-box"><span class="fa-status fa-status-neutral">Cancelled</span><strong th:text="${#lists.size(loanSchedules.?[installmentStatus != null and installmentStatus.name() == 'CANCELLED'])}">0</strong></div>
+                </div>
+            </section>
+
+            <!-- 9. Full installment table for this loan, current installment highlighted -->
+            <section class="fa-card mb-4" aria-labelledby="planTableTitle" th:if="${hasPlan}">
+                <!-- Card header with the count -->
+                <div class="fa-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <!-- Card title -->
+                    <h2 class="fa-card-title mb-0" id="planTableTitle">All Installments for This Loan</h2>
+                    <!-- Row count -->
+                    <p class="mb-0 text-secondary small"><strong th:text="${#lists.size(loanSchedules)}">12</strong> installments</p>
+                </div>
+                <!-- Scrollable wrapper for small screens -->
+                <div class="table-responsive">
+                    <!-- Installment table -->
+                    <table class="table fa-table rs-plan-table align-middle mb-0">
+                        <!-- Hidden caption for screen readers -->
+                        <caption class="visually-hidden">Every installment of this loan. The installment you are viewing is marked Current.</caption>
+                        <!-- Table header -->
+                        <thead>
+                        <tr>
+                            <th scope="col">Installment No.</th>
+                            <th scope="col">Due Date</th>
+                            <th scope="col" class="text-end">Total Amount</th>
+                            <th scope="col" class="text-end">Paid Amount</th>
+                            <th scope="col" class="text-end">Remaining Amount</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">View</th>
+                        </tr>
+                        </thead>
+                        <!-- Table body -->
+                        <tbody>
+                        <!-- One row per installment; the row matching this page is highlighted and marked as current -->
+                        <tr th:each="row : ${loanSchedules}"
+                            th:classappend="${row.id == schedule.id} ? 'rs-row-current'"
+                            th:attr="aria-current=${row.id == schedule.id ? 'true' : null}"
+                            th:with="rowStatus=${row.installmentStatus != null ? row.installmentStatus.name() : ''}">
+                            <!-- Cell: installment number with a Current tag on this page's row -->
+                            <td class="text-nowrap"><span th:text="${row.installmentNumber != null ? row.installmentNumber : '--'}">1</span> <span class="rs-current-tag" th:if="${row.id == schedule.id}">Current</span></td>
+                            <!-- Cell: due date -->
+                            <td class="text-nowrap" th:text="${row.dueDate != null ? #temporals.format(row.dueDate, 'dd/MM/yyyy') : '--'}">01/01/2027</td>
+                            <!-- Cell: total installment amount -->
+                            <td class="rs-amount" th:text="${row.totalInstallmentAmount != null ? #numbers.formatDecimal(row.totalInstallmentAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</td>
+                            <!-- Cell: paid amount -->
+                            <td class="rs-amount" th:text="${row.paidAmount != null ? #numbers.formatDecimal(row.paidAmount, 1, 'COMMA', 2, 'POINT') : '--'}">0.00</td>
+                            <!-- Cell: remaining amount -->
+                            <td class="rs-amount" th:text="${row.remainingAmount != null ? #numbers.formatDecimal(row.remainingAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</td>
+                            <!-- Cell: status badge -->
+                            <td>
+                                <!-- Badge colour depends on status -->
+                                <span class="fa-status"
+                                      th:classappend="${rowStatus == 'PAID'} ? 'fa-status-success'
+                                          : (${rowStatus == 'OVERDUE'} ? 'fa-status-warning'
+                                          : (${rowStatus == 'PARTIAL'} ? 'fa-status-primary'
+                                          : (${rowStatus == 'PENDING'} ? 'fa-status-info' : 'fa-status-neutral')))"
+                                      th:text="${rowStatus != '' ? rowStatus : '--'}">PENDING</span>
+                            </td>
+                            <!-- Cell: link to that installment -->
+                            <td><a class="fa-btn fa-btn-outline fa-btn-sm" th:href="@{/admin/repayment-schedules/{id}(id=${row.id})}" th:attr="aria-label='View installment ' + ${row.installmentNumber}"><i class="bi bi-eye" aria-hidden="true"></i> View</a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 10. Record and audit information with the financial consistency check -->
+            <section class="fa-card mb-4" aria-labelledby="recordTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="recordTitle">Record Information</h2></div>
+                <!-- Label and value grid -->
+                <dl class="rs-detail-grid">
+                    <!-- Internal record ID, for admin troubleshooting only -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Schedule Record ID</dt><dd class="rs-detail-value" th:text="${schedule.id != null ? '#' + schedule.id : '--'}">#15</dd></div>
+                    <!-- Created at -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Created At</dt><dd class="rs-detail-value" th:text="${schedule.createdAt != null ? #temporals.format(schedule.createdAt, 'dd/MM/yyyy HH:mm') : '--'}">--</dd></div>
+                    <!-- Updated at -->
+                    <div class="rs-detail-item"><dt class="rs-detail-label">Updated At</dt><dd class="rs-detail-value" th:text="${schedule.updatedAt != null ? #temporals.format(schedule.updatedAt, 'dd/MM/yyyy HH:mm') : '--'}">--</dd></div>
+                    <!-- Financial consistency check: principal plus interest compared with the stored total -->
+                    <div class="rs-detail-item">
+                        <dt class="rs-detail-label">Financial Check</dt>
+                        <dd class="rs-detail-value">
+                            <!-- VALID when principal plus interest equals the stored total -->
+                            <span class="rs-due-state rs-due-paid" th:if="${finKnown and finMatch}">VALID</span>
+                            <!-- MISMATCH when they differ -->
+                            <span class="rs-due-state rs-due-past" th:if="${finKnown and !finMatch}">MISMATCH</span>
+                            <!-- Not available when an amount is missing -->
+                            <span class="rs-due-state rs-due-cancelled" th:if="${!finKnown}">N/A</span>
+                            <!-- Expected total shown under the badge -->
+                            <span class="rs-due-days" th:if="${finKnown}" th:text="${'Expected ' + #numbers.formatDecimal(schedule.principalAmount.add(schedule.interestAmount), 1, 'COMMA', 2, 'POINT') + ' (principal + interest), stored ' + #numbers.formatDecimal(schedule.totalInstallmentAmount, 1, 'COMMA', 2, 'POINT')}">Expected 1,000.00 (principal + interest), stored 1,000.00</span>
+                        </dd>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- 11. Schedule actions -->
+            <section class="fa-card" aria-labelledby="workflowTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="workflowTitle">Schedule Actions</h2></div>
+
+                <!-- Buttons shown only when at least one action is available -->
+                <div class="rs-action-bar" th:if="${canMarkOverdue}">
+                    <!-- Edit button, PENDING only -->
+                    <a th:if="${isPending}" th:href="@{/admin/repayment-schedules/{id}/edit(id=${schedule.id})}" class="fa-btn fa-btn-outline"><i class="bi bi-pencil-square" aria-hidden="true"></i> Edit Schedule</a>
+                    <!-- Opens the mark overdue modal, PENDING and PARTIAL -->
+                    <button type="button" class="fa-btn fa-btn-warning" data-bs-toggle="modal" data-bs-target="#markOverdueModal"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Mark Overdue</button>
+                    <!-- Opens the cancel modal, PENDING only -->
+                    <button type="button" class="fa-btn fa-btn-danger-outline" th:if="${isPending}" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel Schedule</button>
+                </div>
+
+                <!-- What is available for PENDING -->
+                <p class="rs-action-note" th:if="${status == 'PENDING'}">Edit and Cancel are available while nothing has been paid. Mark Overdue is accepted only after the due date has passed.</p>
+                <!-- What is available for PARTIAL -->
+                <p class="rs-action-note" th:if="${status == 'PARTIAL'}">Part of this installment is paid, so it can no longer be edited or cancelled. Mark Overdue is accepted only after the due date has passed.</p>
+                <!-- Why there are no actions for PAID -->
+                <p class="rs-terminal-note" th:if="${status == 'PAID'}">This installment is fully paid, so no schedule actions are available.</p>
+                <!-- Why there are no actions for OVERDUE -->
+                <p class="rs-terminal-note" th:if="${status == 'OVERDUE'}">This installment is already marked overdue. It cannot be marked again, edited or cancelled.</p>
+                <!-- Why there are no actions for CANCELLED -->
+                <p class="rs-terminal-note" th:if="${status == 'CANCELLED'}">This schedule has been cancelled, so no actions are available.</p>
+
+                <!-- Pointer to where payments are handled -->
+                <p class="rs-action-note border-top pt-3">Repayment transactions are managed from the <a th:href="@{/admin/repayments}">Repayments</a> module.</p>
+            </section>
+
+            <!-- 12. Previous and next installment navigation, each shown only when that installment exists -->
+            <nav class="rs-nav-bar" aria-label="Installment navigation" th:if="${previousScheduleId != null or nextScheduleId != null}">
+                <!-- Previous installment link, or an empty spacer to keep Next on the right -->
+                <a th:if="${previousScheduleId != null}" th:href="@{/admin/repayment-schedules/{id}(id=${previousScheduleId})}" class="fa-btn fa-btn-outline"><i class="bi bi-arrow-left" aria-hidden="true"></i> Previous Installment</a>
+                <span th:unless="${previousScheduleId != null}"></span>
+                <!-- Next installment link -->
+                <a th:if="${nextScheduleId != null}" th:href="@{/admin/repayment-schedules/{id}(id=${nextScheduleId})}" class="fa-btn fa-btn-outline">Next Installment <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+            </nav>
+
+            <!-- Quick admin links -->
+            <nav class="rs-quick-links" aria-label="Quick links">
+                <!-- Back to the full schedule list -->
+                <a th:href="@{/admin/repayment-schedules}" class="fa-btn fa-btn-outline"><i class="bi bi-list-ul" aria-hidden="true"></i> All Repayment Schedules</a>
+                <!-- Parent loan details page (route /admin/loans/{loanApplicationId}) -->
+                <a th:if="${schedule.loan != null and schedule.loan.loanApplicationId != null}" th:href="@{/admin/loans/{loanApplicationId}(loanApplicationId=${schedule.loan.loanApplicationId})}" class="fa-btn fa-btn-outline"><i class="bi bi-cash-coin" aria-hidden="true"></i> View Parent Loan</a>
+                <!-- Disbursement list filtered to this loan -->
+                <a th:if="${schedule.loan != null and schedule.loan.loanApplicationId != null}" th:href="@{/admin/disbursements(keyword=${schedule.loan.loanApplicationId})}" class="fa-btn fa-btn-outline"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i> View Loan Disbursements</a>
+                <!-- Repayments module -->
+                <a th:href="@{/admin/repayments}" class="fa-btn fa-btn-outline"><i class="bi bi-receipt" aria-hidden="true"></i> Go to Repayments</a>
+            </nav>
+        </main>
+
+        <!-- Page footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<!-- ==================== Action modals (each posts with CSRF) ==================== -->
+
+<!-- Mark overdue modal, PENDING and PARTIAL only -->
+<div class="modal fade" id="markOverdueModal" tabindex="-1" aria-labelledby="markOverdueTitle" aria-hidden="true" th:if="${schedule.installmentStatus != null and (schedule.installmentStatus.name() == 'PENDING' or schedule.installmentStatus.name() == 'PARTIAL')}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- POST to mark-overdue -->
+            <form method="post" th:action="@{/admin/repayment-schedules/{id}/mark-overdue(id=${schedule.id})}">
+                <!-- Modal title -->
+                <div class="modal-header"><h2 class="modal-title fs-5" id="markOverdueTitle">Mark Schedule Overdue</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <!-- Warning and summary -->
+                <div class="modal-body">
+                    <!-- Warning notice -->
+                    <div class="rs-modal-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>This records that the installment was not paid on time. The system accepts it only if the due date has passed and a balance is still outstanding.</div></div>
+                    <!-- Summary of the installment -->
+                    <div class="rs-modal-summary">
+                        <div><span>Loan Application ID</span><strong th:text="${schedule.loan != null and schedule.loan.loanApplicationId != null ? schedule.loan.loanApplicationId : '--'}">LOAN-10001</strong></div>
+                        <div><span>Installment</span><strong th:text="${schedule.installmentNumber != null ? schedule.installmentNumber : '--'}">1</strong></div>
+                        <div><span>Due Date</span><strong th:text="${schedule.dueDate != null ? #temporals.format(schedule.dueDate, 'dd/MM/yyyy') : '--'}">01/01/2027</strong></div>
+                        <div><span>Remaining Amount</span><strong th:text="${schedule.remainingAmount != null ? #numbers.formatDecimal(schedule.remainingAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</strong></div>
+                    </div>
+                </div>
+                <!-- Modal buttons -->
+                <div class="modal-footer"><button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Status</button><button type="submit" class="fa-btn fa-btn-warning">Mark Overdue</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel modal, PENDING only -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelTitle" aria-hidden="true" th:if="${schedule.installmentStatus != null and schedule.installmentStatus.name() == 'PENDING'}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- POST to cancel -->
+            <form method="post" th:action="@{/admin/repayment-schedules/{id}/cancel(id=${schedule.id})}">
+                <!-- Modal title -->
+                <div class="modal-header"><h2 class="modal-title fs-5" id="cancelTitle">Cancel Repayment Schedule</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <!-- Danger notice and summary -->
+                <div class="modal-body">
+                    <!-- Danger notice -->
+                    <div class="rs-modal-danger"><i class="bi bi-x-octagon" aria-hidden="true"></i><div>Cancelling removes this installment from the active schedule. This cannot be undone.</div></div>
+                    <!-- Summary of the installment -->
+                    <div class="rs-modal-summary">
+                        <div><span>Loan Application ID</span><strong th:text="${schedule.loan != null and schedule.loan.loanApplicationId != null ? schedule.loan.loanApplicationId : '--'}">LOAN-10001</strong></div>
+                        <div><span>Installment</span><strong th:text="${schedule.installmentNumber != null ? schedule.installmentNumber : '--'}">1</strong></div>
+                        <div><span>Due Date</span><strong th:text="${schedule.dueDate != null ? #temporals.format(schedule.dueDate, 'dd/MM/yyyy') : '--'}">01/01/2027</strong></div>
+                        <div><span>Total Installment Amount</span><strong th:text="${schedule.totalInstallmentAmount != null ? #numbers.formatDecimal(schedule.totalInstallmentAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</strong></div>
+                    </div>
+                </div>
+                <!-- Modal buttons -->
+                <div class="modal-footer"><button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Schedule</button><button type="submit" class="fa-btn fa-btn-danger">Cancel Schedule</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Load Bootstrap JavaScript (dropdowns, alerts, modals) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load FundAxis dashboard script (sidebar toggle) -->
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

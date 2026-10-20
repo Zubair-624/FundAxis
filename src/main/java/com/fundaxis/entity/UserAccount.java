@@ -1,6 +1,7 @@
 package com.fundaxis.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.util.HashSet;
 import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 
@@ -55,8 +57,13 @@ public class UserAccount {
     // IMPORTANT: this field must NEVER contain the user's plain-text password
     // Example stored value: $2a$10$...
     // Password hashing will be handled later by Spring Security
+    @JsonIgnore
     @NotBlank(message = "Password is required")
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(
+            name = "password_hash",
+            nullable = false,
+            length = 255
+    )
     private String passwordHash;
 
 

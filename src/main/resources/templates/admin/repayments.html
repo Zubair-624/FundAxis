@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<!--/* Repayment list: GET /admin/repayments
+     Model: repayments, totalRepayments, completedRepayments, reversedRepayments, totalCompletedAmount,
+            keyword, selectedRepaymentStatus, selectedPaymentMethod, repaymentStatuses, paymentMethods */-->
+<!-- Page root with Thymeleaf and Spring Security namespaces -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head holds metadata and stylesheets -->
+<head>
+    <!-- Use UTF-8 character encoding -->
+    <meta charset="UTF-8">
+    <!-- Make the page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Keep this admin page out of search engines -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Browser tab title -->
+    <title>Repayment Management | FundAxis</title>
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Load shared FundAxis dashboard styles -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <!-- Load admin employee page styles -->
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <!-- Load the repayment module stylesheet -->
+    <link th:href="@{/css/repayment.css}" rel="stylesheet">
+</head>
+
+<!-- Body with the shared FundAxis class -->
+<body class="fa-body">
+
+<!-- Accessibility link to jump past the menu -->
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<!-- Outer shell holding sidebar and content -->
+<div class="fa-shell">
+
+    <!-- Left admin sidebar -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+
+        <!-- Sidebar logo area -->
+        <div class="fa-sidebar-brand">
+            <!-- Logo link back to dashboard -->
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <!-- Logo image -->
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <!-- Brand name text -->
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <!-- Button to close sidebar on mobile -->
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+
+        <!-- Sidebar navigation menu -->
+        <nav class="fa-sidebar-nav">
+            <!-- Dashboard group heading -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <!-- Dashboard group list -->
+            <ul class="fa-nav-list">
+                <!-- Dashboard link -->
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <!-- Administration group heading -->
+            <p class="fa-nav-heading">Administration</p>
+            <!-- Administration group list -->
+            <ul class="fa-nav-list">
+                <!-- Employee management link -->
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions link -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans link -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <!-- Loan extensions link -->
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <!-- Loan disbursements link -->
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <!-- Repayment schedules link -->
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <!-- Repayments link (current section) -->
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link active" aria-current="page"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <!-- Security group heading -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <!-- Security group list -->
+            <ul class="fa-nav-list">
+                <!-- User accounts link -->
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <!-- Role management link -->
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <!-- Account group heading -->
+            <p class="fa-nav-heading">Account</p>
+            <!-- Account group list -->
+            <ul class="fa-nav-list">
+                <!-- Change password link -->
+                <li><a th:href="@{/change-password}" class="fa-nav-link"><i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span></a></li>
+                <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                <li>
+                    <!-- Logout form -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <!-- Logout button -->
+                        <button type="submit" class="fa-nav-link fa-nav-button"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span></button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dark overlay shown behind mobile sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <!-- Right side wrapper with topbar and content -->
+    <div class="fa-main-wrap">
+
+        <!-- Top bar -->
+        <header class="fa-topbar">
+            <!-- Left part of top bar -->
+            <div class="fa-topbar-left">
+                <!-- Hamburger button for mobile -->
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle" aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i></button>
+                <!-- App title in top bar -->
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+            <!-- Right part of top bar -->
+            <div class="fa-topbar-right">
+                <!-- Notification button placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i></button>
+                <!-- Profile dropdown wrapper -->
+                <div class="dropdown">
+                    <!-- Button that opens the profile menu -->
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Avatar circle -->
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <!-- Name and role, hidden on tiny screens -->
+                        <span class="fa-profile-meta d-none d-sm-flex"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></span>
+                    </button>
+                    <!-- Dropdown menu items -->
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <!-- Dropdown header with username and role -->
+                        <li class="fa-dropdown-header"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Profile link -->
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <!-- Change password link -->
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                        <li><form th:action="@{/logout}" method="post"><button type="submit" class="dropdown-item fa-dropdown-danger"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out</button></form></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content; resultCount is the number of rows shown -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="resultCount=${repayments != null ? #lists.size(repayments) : 0}">
+
+            <!-- Page header with title and record button -->
+            <div class="fa-page-header flex-wrap">
+                <!-- Title block -->
+                <div>
+                    <!-- Page title -->
+                    <h1 class="fa-page-title">Repayment Management</h1>
+                    <!-- Page description -->
+                    <p class="fa-page-subtitle">Record, review and audit employee loan repayment transactions.</p>
+                    <!-- Breadcrumb trail -->
+                    <nav aria-label="Breadcrumb">
+                        <!-- Breadcrumb list -->
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <!-- Dashboard crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <!-- Current page crumb -->
+                            <li class="breadcrumb-item active" aria-current="page">Repayments</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- Button to open the record repayment form -->
+                <a th:href="@{/admin/repayments/new}" class="fa-btn fa-btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Record Repayment</a>
+            </div>
+
+            <!-- Area for flash messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <!-- Success alert, shown only if successMessage exists -->
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Error alert, shown only if errorMessage exists -->
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Summary cards row -->
+            <section class="row g-3 mb-4" aria-label="Repayment summary">
+                <!-- Total transactions card -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="rp-card rp-summary-card">
+                        <!-- Card icon -->
+                        <span class="rp-summary-icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
+                        <!-- Card text -->
+                        <div>
+                            <p class="rp-summary-label">Total Transactions</p>
+                            <!-- Total count, defaults to 0 -->
+                            <p class="rp-summary-value" th:text="${totalRepayments != null ? totalRepayments : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Completed card -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="rp-card rp-summary-card">
+                        <span class="rp-summary-icon"><i class="bi bi-check-circle" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="rp-summary-label">Completed</p>
+                            <!-- Completed count, defaults to 0 -->
+                            <p class="rp-summary-value" th:text="${completedRepayments != null ? completedRepayments : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Reversed card -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="rp-card rp-summary-card">
+                        <span class="rp-summary-icon"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="rp-summary-label">Reversed</p>
+                            <!-- Reversed count, defaults to 0 -->
+                            <p class="rp-summary-value" th:text="${reversedRepayments != null ? reversedRepayments : 0}">0</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Collected amount card -->
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="rp-card rp-summary-card">
+                        <span class="rp-summary-icon"><i class="bi bi-cash-stack" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="rp-summary-label">Active Collected Amount</p>
+                            <!-- Total of completed repayments, defaults to 0.00 -->
+                            <p class="rp-summary-value" th:text="${totalCompletedAmount != null ? #numbers.formatDecimal(totalCompletedAmount, 1, 'COMMA', 2, 'POINT') : '0.00'}">0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search and filter card -->
+            <section class="fa-card rp-card mb-4" aria-labelledby="repaymentFilterTitle">
+                <!-- Card header -->
+                <div class="fa-card-header">
+                    <div>
+                        <!-- Card title -->
+                        <h2 class="fa-card-title" id="repaymentFilterTitle">Search &amp; Filter</h2>
+                        <!-- Card hint text -->
+                        <p class="mb-0 text-secondary small">Search by reference, loan, employee or installment.</p>
+                    </div>
+                </div>
+                <!-- Card body padding -->
+                <div class="p-3">
+                    <!-- GET form so filters appear in the URL -->
+                    <form method="get" th:action="@{/admin/repayments}" class="row g-3 align-items-end">
+                        <!-- Keyword column -->
+                        <div class="col-12 col-xl-5">
+                            <!-- Keyword label -->
+                            <label for="keyword" class="fa-label">Search</label>
+                            <!-- Keyword input that keeps the typed value -->
+                            <input type="search" id="keyword" name="keyword" class="form-control fa-input" th:value="${keyword}"
+                                   placeholder="Reference, Loan ID, Employee ID/Name, Installment No.">
+                        </div>
+                        <!-- Status column -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <!-- Status label -->
+                            <label for="repaymentStatus" class="fa-label">Status</label>
+                            <!-- Status dropdown, options come from the repaymentStatuses model attribute -->
+                            <select id="repaymentStatus" name="repaymentStatus" class="form-select fa-input">
+                                <option value="" th:selected="${selectedRepaymentStatus == null or selectedRepaymentStatus == ''}">All Statuses</option>
+                                <option th:each="s : ${repaymentStatuses}" th:value="${s.name()}" th:text="${s.name()}" th:selected="${selectedRepaymentStatus == s.name()}">COMPLETED</option>
+                            </select>
+                        </div>
+                        <!-- Payment method column -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <!-- Payment method label -->
+                            <label for="paymentMethod" class="fa-label">Payment Method</label>
+                            <!-- Payment method dropdown, options come from the paymentMethods model attribute -->
+                            <select id="paymentMethod" name="paymentMethod" class="form-select fa-input">
+                                <option value="" th:selected="${selectedPaymentMethod == null or selectedPaymentMethod == ''}">All Methods</option>
+                                <option th:each="m : ${paymentMethods}" th:value="${m.name()}" th:text="${#strings.replace(m.name(), '_', ' ')}" th:selected="${selectedPaymentMethod == m.name()}">BANK TRANSFER</option>
+                            </select>
+                        </div>
+                        <!-- Buttons column -->
+                        <div class="col-12 col-xl-2">
+                            <!-- Button row -->
+                            <div class="d-flex gap-2 flex-wrap">
+                                <!-- Search submit button -->
+                                <button type="submit" class="fa-btn fa-btn-primary flex-grow-1"><i class="bi bi-search" aria-hidden="true"></i> Search</button>
+                                <!-- Clear link resets filters -->
+                                <a th:href="@{/admin/repayments}" class="fa-btn fa-btn-outline flex-grow-1">Clear</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Records card -->
+            <section class="fa-card rp-card" aria-labelledby="repaymentRecordsTitle">
+                <!-- Card header with count -->
+                <div class="fa-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <!-- Card title -->
+                        <h2 class="fa-card-title" id="repaymentRecordsTitle">Repayment Transactions</h2>
+                        <!-- Card hint text -->
+                        <p class="mb-0 text-secondary small">Completed repayments stay in the audit trail even if later reversed.</p>
+                    </div>
+                    <!-- Result count with singular or plural word -->
+                    <p class="mb-0 text-secondary small" role="status" aria-live="polite">Showing <strong th:text="${resultCount}">0</strong> <span th:text="${resultCount == 1 ? 'transaction' : 'transactions'}">transactions</span></p>
+                </div>
+
+                <!-- Scrollable wrapper for small screens -->
+                <div class="table-responsive">
+                    <!-- Records table -->
+                    <table class="table fa-table align-middle mb-0">
+                        <!-- Hidden caption for screen readers -->
+                        <caption class="visually-hidden">FundAxis repayment transactions</caption>
+                        <!-- Table header -->
+                        <thead>
+                        <tr>
+                            <th scope="col">Reference</th>
+                            <th scope="col">Loan</th>
+                            <th scope="col">Employee</th>
+                            <th scope="col">Installment</th>
+                            <th scope="col">Date</th>
+                            <th scope="col" class="text-end">Amount</th>
+                            <th scope="col">Method</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Recorded By</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                        </thead>
+                        <!-- Table body -->
+                        <tbody>
+                        <!-- One row per repayment; sched, loan and emp are looked up once for the whole row -->
+                        <tr th:each="repayment : ${repayments}"
+                            th:with="status=${repayment.repaymentStatus != null ? repayment.repaymentStatus.name() : ''},
+                                     sched=${repayment.repaymentSchedule},
+                                     loan=${sched != null ? sched.loan : null},
+                                     emp=${loan != null ? loan.employee : null}">
+                            <!-- Cell: reference number -->
+                            <td><span class="rp-reference" th:text="${repayment.referenceNumber != null ? repayment.referenceNumber : '--'}">RP-001</span></td>
+                            <!-- Cell: loan application ID -->
+                            <td class="rp-nowrap" th:text="${loan?.loanApplicationId ?: '--'}">LOAN-001</td>
+                            <!-- Cell: employee name over employee ID -->
+                            <td>
+                                <div class="rp-party-cell">
+                                    <!-- Employee name -->
+                                    <strong th:text="${emp?.fullName ?: '--'}">Employee</strong>
+                                    <!-- Employee ID -->
+                                    <span th:text="${emp?.employeeId ?: '--'}">EMP001</span>
+                                </div>
+                            </td>
+                            <!-- Cell: installment number -->
+                            <td class="rp-nowrap" th:text="${sched != null and sched.installmentNumber != null ? '#' + sched.installmentNumber : '--'}">#1</td>
+                            <!-- Cell: repayment date -->
+                            <td class="rp-nowrap" th:text="${repayment.repaymentDate != null ? #temporals.format(repayment.repaymentDate, 'dd/MM/yyyy') : '--'}">17/10/2026</td>
+                            <!-- Cell: amount -->
+                            <td class="rp-money rp-money-strong" th:text="${repayment.repaymentAmount != null ? #numbers.formatDecimal(repayment.repaymentAmount, 1, 'COMMA', 2, 'POINT') : '--'}">1,000.00</td>
+                            <!-- Cell: payment method -->
+                            <td class="rp-nowrap" th:text="${repayment.paymentMethod != null ? #strings.replace(repayment.paymentMethod.name(), '_', ' ') : '--'}">BANK TRANSFER</td>
+                            <!-- Cell: status badge -->
+                            <td><span class="rp-status" th:classappend="${status == 'COMPLETED' ? 'rp-status-completed' : (status == 'REVERSED' ? 'rp-status-reversed' : 'rp-status-neutral')}" th:text="${status != '' ? status : '--'}">COMPLETED</span></td>
+                            <!-- Cell: who recorded it -->
+                            <td th:text="${repayment.recordedBy != null and !repayment.recordedBy.isBlank() ? repayment.recordedBy : '--'}">admin</td>
+                            <!-- Cell: view action -->
+                            <td><a class="fa-btn fa-btn-outline fa-btn-sm" th:href="@{/admin/repayments/{id}(id=${repayment.id})}" aria-label="View repayment details"><i class="bi bi-eye" aria-hidden="true"></i> View</a></td>
+                        </tr>
+
+                        <!-- Empty row, shown only when there are no records -->
+                        <tr th:if="${repayments == null or repayments.isEmpty()}">
+                            <!-- Cell spanning all 10 columns -->
+                            <td colspan="10" class="text-center text-secondary py-5">
+                                <!-- Empty icon -->
+                                <i class="bi bi-receipt rp-empty-icon" aria-hidden="true"></i>
+                                <!-- Empty message -->
+                                <p class="mt-3 mb-3">No repayment transactions found.</p>
+                                <!-- Button to record the first repayment -->
+                                <a th:href="@{/admin/repayments/new}" class="fa-btn fa-btn-primary fa-btn-sm"><i class="bi bi-plus-lg" aria-hidden="true"></i> Record Repayment</a>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Page footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<!-- Load Bootstrap JavaScript (dropdowns, alerts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load FundAxis dashboard script (sidebar toggle) -->
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

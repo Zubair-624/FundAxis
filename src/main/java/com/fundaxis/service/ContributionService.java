@@ -65,6 +65,15 @@ public class ContributionService {
     }
 
 
+    ///==================== Find Contribution by ID ====================///
+
+    public Contribution findContributionById(Long id) {
+
+        return contributionRepository.findById(id)
+                .orElseThrow(() -> new ContributionNotFoundException("Contribution with ID: " + id + " does not exist"));
+    }
+
+
     ///---------- Create ----------///
 
     @Transactional

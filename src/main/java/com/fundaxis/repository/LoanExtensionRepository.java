@@ -32,4 +32,7 @@ public interface LoanExtensionRepository extends JpaRepository<LoanExtension, Lo
 
     ///---------- Check Whether A Loan Already Has An Extension With The Given Status ----------
     boolean existsByLoanIdAndExtensionStatus(Long loanId, LoanExtension.ExtensionStatus extensionStatus);
+
+
+    
 }

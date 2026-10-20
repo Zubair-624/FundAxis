@@ -127,7 +127,9 @@ public class Loan {
         CANCELLED,
         DISBURSED,
         ACTIVE,
-        COMPLETED
+        COMPLETED,
+        APPLIED,
+        CLOSED
     }
 
     @NotNull(message = "Loan status is required")

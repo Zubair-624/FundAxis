@@ -1,0 +1,11 @@
+/* FundAxis Admin Loan Management — status badge variants used by loans.html.
+   Defined here only as a safety net: if dashboard.css / admin-employees.css already
+   define .fa-status-info or .fa-status-danger, delete the matching rule below. */
+.fa-status.fa-status-info {
+    background: #e0f2fe;
+    color: #075985;
+}
+.fa-status.fa-status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}

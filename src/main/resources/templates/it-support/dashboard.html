@@ -1,0 +1,360 @@
+<!--- IT Support dashboard: technical / account-support workspace. No financial operations or role management. --->
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IT Support Dashboard | FundAxis</title>
+
+    <!-- Bootstrap 5 + Bootstrap Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Shared FundAxis dashboard styles (existing file, no IT Support-specific CSS) -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+</head>
+<body class="fa-body">
+
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<div class="fa-shell">
+
+    <!-- IT Support sidebar navigation -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="IT Support navigation">
+        <div class="fa-sidebar-brand">
+            <a th:href="@{/it-support/dashboard}" class="fa-brand-link" aria-label="FundAxis IT Support dashboard home">
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="fa-sidebar-nav">
+
+            <p class="fa-nav-heading">Dashboard</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/it-support/dashboard}" class="fa-nav-link active" aria-current="page">
+                        <i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span>
+                    </a>
+                </li>
+            </ul>
+
+            <p class="fa-nav-heading">Support Operations</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/it-support/employees}" class="fa-nav-link"><i class="bi bi-search" aria-hidden="true"></i><span>Employee Lookup</span></a></li>
+                <li><a th:href="@{/it-support/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <li><a th:href="@{/it-support/locked-accounts}" class="fa-nav-link"><i class="bi bi-person-lock" aria-hidden="true"></i><span>Locked Accounts</span></a></li>
+                <li><a th:href="@{/it-support/password-reset}" class="fa-nav-link"><i class="bi bi-key" aria-hidden="true"></i><span>Password Reset</span></a></li>
+                <li><a th:href="@{/it-support/account-support}" class="fa-nav-link"><i class="bi bi-headset" aria-hidden="true"></i><span>Account Support</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Account</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span>
+                    </a>
+                </li>
+                <li>
+                    <!-- FundAxis logout form (sidebar) -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile overlay behind sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <div class="fa-main-wrap">
+
+        <!-- FundAxis IT Support dashboard topbar -->
+        <header class="fa-topbar">
+            <div class="fa-topbar-left">
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle"
+                        aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+
+            <div class="fa-topbar-right">
+                <!-- Notification placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications (none)">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-it">IT SUPPORT</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <li class="fa-dropdown-header">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-it">IT SUPPORT</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="fa-content" id="main-content" tabindex="-1">
+
+            <!-- Dashboard page header -->
+            <div class="fa-page-header">
+                <div>
+                    <h1 class="fa-page-title">IT Support Dashboard</h1>
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/home}">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Global alert messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-info alert-dismissible fade show fa-alert" role="alert" th:if="${infoMessage}">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${infoMessage}">Information message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Welcome section -->
+            <section class="fa-welcome" aria-labelledby="faWelcomeTitle">
+                <div>
+                    <h2 class="fa-welcome-title" id="faWelcomeTitle">
+                        Welcome back, <span sec:authentication="name">Username</span>
+                    </h2>
+                    <p class="fa-welcome-text">Manage FundAxis account support, employee lookup, access issues and technical user assistance from one secure workspace.</p>
+                </div>
+                <div class="fa-welcome-role">
+                    <span class="fa-welcome-role-label">Current role</span>
+                    <span class="fa-role-badge fa-role-it">IT SUPPORT</span>
+                </div>
+            </section>
+
+            <!-- IT Support summary cards -->
+            <section class="row g-3 mb-3" aria-label="Summary">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-person-check" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Active User Accounts</p>
+                            <p class="fa-stat-value" th:text="${activeUserAccounts != null ? activeUserAccounts : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-person-lock" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Locked Accounts</p>
+                            <p class="fa-stat-value" th:text="${lockedAccounts != null ? lockedAccounts : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Pending Accounts</p>
+                            <p class="fa-stat-value" th:text="${pendingAccounts != null ? pendingAccounts : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-headset" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Support Actions</p>
+                            <p class="fa-stat-value" th:text="${supportActions != null ? supportActions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Secondary status cards (show real values once the backend supplies them) -->
+            <section class="row g-3 mb-4" aria-label="Account status indicators">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-person-dash" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Disabled Accounts</p>
+                            <p class="fa-stat-value" th:text="${disabledAccounts != null ? disabledAccounts : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-key" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Password Change Required</p>
+                            <p class="fa-stat-value" th:text="${mustChangePasswordCount != null ? mustChangePasswordCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-link-45deg" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Employees Linked to Accounts</p>
+                            <p class="fa-stat-value" th:text="${linkedAccountCount != null ? linkedAccountCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-person-x" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Accounts Without Employee Link</p>
+                            <p class="fa-stat-value" th:text="${unlinkedAccountCount != null ? unlinkedAccountCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="row g-3">
+
+                <!-- Recent support activity -->
+                <section class="col-12 col-xl-8" aria-labelledby="faActivityTitle">
+                    <div class="fa-card h-100">
+                        <div class="fa-card-header">
+                            <h2 class="fa-card-title" id="faActivityTitle">Recent Support Activity</h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table fa-table align-middle mb-0">
+                                <caption class="visually-hidden">Recent support activity</caption>
+                                <thead>
+                                <tr>
+                                    <th scope="col">Activity</th>
+                                    <th scope="col">Account</th>
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Date</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Backend model: recentActivities (activity, account, action, status, date) -->
+                                <tr th:each="item : ${recentActivities}"
+                                    th:with="s=${item.status != null ? #strings.toUpperCase(item.status) : ''}">
+                                    <td th:text="${item.activity}">Activity</td>
+                                    <td th:text="${item.account != null ? item.account : '--'}">Account</td>
+                                    <td th:text="${item.action != null ? item.action : '--'}">Action</td>
+                                    <td>
+                                        <span class="fa-status"
+                                              th:classappend="${s == 'COMPLETED' or s == 'ACTIVE' or s == 'ACTIVATED' or s == 'UNLOCKED' or s == 'SUCCESS'} ? 'fa-status-success'
+                                                  : (${s == 'PENDING'} ? 'fa-status-warning'
+                                                  : (${s == 'LOCKED' or s == 'DISABLED' or s == 'FAILED'} ? 'fa-status-danger' : 'fa-status-neutral'))"
+                                              th:text="${item.status != null ? item.status : '--'}">Status</span>
+                                    </td>
+                                    <td th:text="${item.date != null ? item.date : '--'}">Date</td>
+                                </tr>
+                                <tr th:if="${recentActivities == null or recentActivities.isEmpty()}">
+                                    <td colspan="5" class="text-center text-secondary py-4">No recent support activity available.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+
+                    <!-- IT Support quick actions -->
+                    <section aria-labelledby="faQuickTitle">
+                        <div class="fa-card">
+                            <div class="fa-card-header">
+                                <h2 class="fa-card-title" id="faQuickTitle">Quick Actions</h2>
+                            </div>
+                            <div class="fa-quick-list">
+                                <a th:href="@{/it-support/employees}" class="fa-quick-link"><i class="bi bi-search" aria-hidden="true"></i><span>Employee Lookup</span></a>
+                                <a th:href="@{/it-support/user-accounts}" class="fa-quick-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>View User Accounts</span></a>
+                                <a th:href="@{/it-support/locked-accounts}" class="fa-quick-link"><i class="bi bi-person-lock" aria-hidden="true"></i><span>View Locked Accounts</span></a>
+                                <a th:href="@{/it-support/password-reset}" class="fa-quick-link"><i class="bi bi-key" aria-hidden="true"></i><span>Reset Password</span></a>
+                                <a th:href="@{/it-support/account-support}" class="fa-quick-link"><i class="bi bi-headset" aria-hidden="true"></i><span>Account Support</span></a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Support actions requiring attention -->
+                    <section aria-labelledby="faAttentionTitle">
+                        <div class="fa-card">
+                            <div class="fa-card-header">
+                                <h2 class="fa-card-title" id="faAttentionTitle">Needs Attention</h2>
+                            </div>
+                            <div class="fa-quick-list">
+                                <a th:href="@{/it-support/locked-accounts}" class="fa-quick-link"><span>Locked accounts</span><span class="fa-status fa-status-neutral ms-auto" th:text="${lockedAccountCount != null ? lockedAccountCount : '--'}">--</span></a>
+                                <a th:href="@{/it-support/user-accounts}" class="fa-quick-link"><span>Pending accounts</span><span class="fa-status fa-status-neutral ms-auto" th:text="${pendingAccountCount != null ? pendingAccountCount : '--'}">--</span></a>
+                                <a th:href="@{/it-support/user-accounts}" class="fa-quick-link"><span>Disabled accounts</span><span class="fa-status fa-status-neutral ms-auto" th:text="${disabledAccountCount != null ? disabledAccountCount : '--'}">--</span></a>
+                                <a th:href="@{/it-support/user-accounts}" class="fa-quick-link"><span>Password change required</span><span class="fa-status fa-status-neutral ms-auto" th:text="${mustChangePasswordCount != null ? mustChangePasswordCount : '--'}">--</span></a>
+                                <a th:href="@{/it-support/account-support}" class="fa-quick-link"><span>Accounts without employee link</span><span class="fa-status fa-status-neutral ms-auto" th:text="${unlinkedAccountCount != null ? unlinkedAccountCount : '--'}">--</span></a>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- IT Support dashboard footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

@@ -35,27 +35,26 @@ public class SecurityConfig {
         this.customUserDetailsService = customUserDetailsService;
         this.authenticationSuccessHandler = authenticationSuccessHandler;
         this.mustChangePasswordFilter = mustChangePasswordFilter;
-
     }
 
     ///==================== Password Encoding ====================///
 
-    // PasswordEncoder used to securely hash user passwords, and Plain-text passwords must never be stored in the database
+    // PasswordEncoder used to securely hash user passwords, and plain-text passwords must never be stored in the database.
     // BCrypt creates a one-way hash that will be stored in: UserAccount.passwordHash
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    ///==================== Authentication provider used by Spring Security for username/password authentication ====================///
+    ///==================== Authentication Provider ====================///
 
-    // It connects: CustomUserDetailsService + PasswordEncoder
-    // CustomUserDetailsService loads the user from the FundAxis database
-    // PasswordEncoder verifies the submitted password
-    // Spring Security uses DaoAuthenticationProvider for username/password authentication. It loads the user through UserDetailsService and checks the submitted password against the stored encoded password using PasswordEncoder
+    // Bridges CustomUserDetailsService and PasswordEncoder for Spring Security.
+    //
+    // DaoAuthenticationProvider:
+    // 1. Fetches user details (username, password hash, roles) using customUserDetailsService.
+    // 2. Verifies the user-entered raw password against the stored BCrypt hash using passwordEncoder().
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        // Loads the user through CustomUserDetailsService (FundAxis UserAccount records)
         DaoAuthenticationProvider authenticationProvider =
                 new DaoAuthenticationProvider(customUserDetailsService);
 
@@ -66,24 +65,9 @@ public class SecurityConfig {
     }
 
     ///==================== Security Filter Chains ====================///
-    // SecurityFilterChain -> customizing web security, and this defines how HTTP requests are secured.
-    // FundAxis now uses TWO filter chains. Spring checks them in @Order sequence,
-    // and the first chain whose securityMatcher matches the request handles it:
-    //   Order 1 -> /api/**  (REST API, HTTP Basic, stateless)
-    //   Order 2 -> everything else (Thymeleaf pages, Form Login, HttpSession)
 
-    ///---------- API SECURITY ----------///
-    //
-    // Handles:
-    // /api/**
-    //
-    // Used mainly by Postman and REST API clients.
-    //
-    // Authentication:
-    // HTTP Basic
-    //
-    // CSRF:
-    // Disabled because this API chain is stateless.
+    ///---------- API SECURITY (@Order(1)) ----------///
+    // Handles requests starting with /api/** using stateless HTTP Basic authentication.
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -93,156 +77,102 @@ public class SecurityConfig {
                 .securityMatcher("/api/**")
 
                 // Register our database authentication provider
-                // Spring Security will now authenticate users using FundAxis UserAccount records
                 .authenticationProvider(authenticationProvider())
 
-                // CSRF is disabled for the REST API
-                // because it is stateless and uses HTTP Basic Authentication
+                // CSRF is disabled for the REST API because it is stateless
                 .csrf(csrf -> csrf.disable())
 
-                // Stateless: no HttpSession is created, credentials are sent with every request
+                // Stateless: no HttpSession is created
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                ///----- authorizeHttpRequests() -> decides what the authenticated user can access / Define protected endpoints. -----///
+                // Define what endpoints are public or protected
                 .authorizeHttpRequests(auth -> auth
-
-
-
-                        // Allow everyone to access the home page and static resources (CSS, JavaScript, and images) without logging in.
+                        // Public API endpoints
                         .requestMatchers(
-                                "/home",        // Home Page
-                                "/css/**",      // CSS files
-                                "/js/**",       // JavaScript files
-                                "/images/**"    // Image files
-                        )
-                        .permitAll()              // No authentication is required to access these resources
+                                "/api/login",
+                                "/api/home")
+                        .permitAll()
 
-                        ///----- /api/user-accounts/** -> ADMIN or IT_SUPPORT -----///
-                        // Only ADMIN or IT_SUPPORT can manage user accounts
-                        .requestMatchers("/api/user-accounts/**")
-                        .hasAnyRole("ADMIN", "IT_SUPPORT")
+                        // Role-restricted API endpoints
+                        .requestMatchers("/api/user-accounts/**").hasAnyRole("ADMIN", "IT_SUPPORT")
+                        .requestMatchers("/api/roles/**").hasRole("ADMIN")
 
-                        ///----- /api/roles/** -> ADMIN -----///
-                        // Only ADMIN can manage roles
-                        .requestMatchers("/api/roles/**")
-                        .hasRole("ADMIN")
-
-                        ///----- everything else -> authenticated -----///
-                        // All remaining API endpoints require authentication.
-                        //
-                        // More detailed permissions are enforced using
-                        // @PreAuthorize inside the controllers.
-                        .anyRequest()
-                        .authenticated())
+                        // All other API endpoints require authentication
+                        .anyRequest().authenticated()
+                )
 
                 // Enable HTTP Basic Authentication for protected API requests
                 .httpBasic(Customizer.withDefaults())
 
-                // Block users who must change their password (runs after login, so the user is already known)
-                // Enforce mustChangePassword for API users
+                // Enforce mustChangePassword for API users after authentication
                 .addFilterAfter(mustChangePasswordFilter, BasicAuthenticationFilter.class);
 
         return http.build();
     }
 
-    ///---------- THYMELEAF / WEB SECURITY ----------///
-    //
-    // Handles normal browser pages.
-    //
-    // Authentication:
-    // Form Login + HttpSession
-    //
-    // CSRF:
-    // Enabled.
+    ///---------- WEB FRONTEND / THYMELEAF SECURITY (@Order(2)) ----------///
+    // Handles browser pages, forms, and session-based authentication.
     @Bean
     @Order(2)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
 
         http
                 // Register our database authentication provider
-                // Spring Security will now authenticate users using FundAxis UserAccount records
                 .authenticationProvider(authenticationProvider())
 
                 // Define which requests are public and which require authentication
                 .authorizeHttpRequests(auth -> auth
-
-                        // Public home page, login page and static frontend resources
-                        .requestMatchers("/", "/login", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/error")
+                        // Public home page, login page, and static frontend resources
+                        .requestMatchers(
+                                "/home",
+                                "/login",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/forgot-password",
+                                "/favicon.ico",
+                                "/error")
                         .permitAll()
 
-                        // Password change page is available to
-                        // every authenticated account
-                        .requestMatchers("/change-password")
+                        // Pages requiring standard authentication
+                        // Only logged-in users can access /change-password
+                        .requestMatchers(
+                                "/change-password",
+                                "/dashboard")
                         .authenticated()
 
-                        // General dashboard redirect
-                        .requestMatchers("/dashboard")
-                        .authenticated()
+                        // Role-restricted frontend pages
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/it-support/**").hasRole("IT_SUPPORT")
+                        .requestMatchers("/user/**").hasRole("USER")
 
-                        ///----- /admin/** -> ADMIN -----///
-                        // ADMIN frontend
-                        .requestMatchers("/admin/**")
-                        .hasRole("ADMIN")
-
-                        ///----- /it-support/** -> IT_SUPPORT -----///
-                        // IT Support frontend
-                        .requestMatchers("/it-support/**")
-                        .hasRole("IT_SUPPORT")
-
-                        ///----- /user/** -> USER -----///
-                        // Normal employee frontend
-                        .requestMatchers("/user/**")
-                        .hasRole("USER")
-
-                        ///----- everything else -> authenticated -----///
                         // Every other request requires authentication
-                        .anyRequest()
-                        .authenticated())
+                        .anyRequest().authenticated()
+                )
 
-                // Custom FundAxis login page (POST /login is handled by Spring Security, not by our JS)
+                // Custom FundAxis form login configuration
                 .formLogin(form -> form
-
-                        // Page shown to the user when login is required
-                        .loginPage("/login")
-
-                        // URL the login form submits to
-                        .loginProcessingUrl("/login")
-
-                        // Names of the form fields in the login page
+                        .loginPage("/login")                              // Custom login page
+                        .loginProcessingUrl("/login")                       // Login processing URL
                         .usernameParameter("username")
                         .passwordParameter("password")
-
-                        // After successful login, our handler decides where the user goes (based on role)
+                        .defaultSuccessUrl("/home", true)
                         .successHandler(authenticationSuccessHandler)
+                        .failureUrl("/login?error")     // Failed login
+                        .permitAll()
+                )
 
-                        // Redirect back to the login page when credentials are wrong
-                        .failureUrl("/login?error")
-
-                        // Login page and login processing must be public
-                        .permitAll())
-
-                // Secure logout
+                // Secure logout configuration
                 .logout(logout -> logout
-
-                        // URL that triggers logout
                         .logoutUrl("/logout")
-
-                        // Where the user lands after logging out
                         .logoutSuccessUrl("/login?logout")
-
-                        // Destroy the server-side session
                         .invalidateHttpSession(true)
-
-                        // Remove the stored authentication
                         .clearAuthentication(true)
-
-                        // Delete the session cookie from the browser
                         .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
 
-                        .permitAll())
-
-                // Block users who must change their password (runs after login, so the user is already known)
                 // Check mustChangePassword after web authentication
                 .addFilterAfter(mustChangePasswordFilter, UsernamePasswordAuthenticationFilter.class);
 

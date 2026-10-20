@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<!--/* Add/Edit Repayment Schedule: create = POST /admin/repayment-schedules, edit = POST /admin/repayment-schedules/{id}/update (model: schedule, loanApplicationId, editMode, errorMessage) */-->
+<!-- Page root with Thymeleaf and Spring Security namespaces -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head holds metadata and stylesheets -->
+<head>
+    <!-- Use UTF-8 character encoding -->
+    <meta charset="UTF-8">
+    <!-- Make the page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Keep this admin page out of search engines -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Tab title changes with create or edit mode -->
+    <title th:text="${editMode != null and editMode ? 'Edit Repayment Schedule | FundAxis' : 'Add Repayment Schedule | FundAxis'}">Repayment Schedule Form | FundAxis</title>
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Load shared FundAxis dashboard styles -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <!-- Load admin employee page styles -->
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <!-- Load the repayment schedule module stylesheet -->
+    <link th:href="@{/css/repayment-schedule.css}" rel="stylesheet">
+</head>
+
+<!-- Body with the shared FundAxis class -->
+<body class="fa-body">
+
+<!-- Accessibility link to jump past the menu -->
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<!-- Outer shell holding sidebar and content -->
+<div class="fa-shell">
+
+    <!-- Left admin sidebar -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+
+        <!-- Sidebar logo area -->
+        <div class="fa-sidebar-brand">
+            <!-- Logo link back to dashboard -->
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <!-- Logo image -->
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <!-- Brand name text -->
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <!-- Button to close sidebar on mobile -->
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+
+        <!-- Sidebar navigation menu -->
+        <nav class="fa-sidebar-nav">
+            <!-- Dashboard group heading -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <!-- Dashboard group list -->
+            <ul class="fa-nav-list">
+                <!-- Dashboard link -->
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <!-- Administration group heading -->
+            <p class="fa-nav-heading">Administration</p>
+            <!-- Administration group list -->
+            <ul class="fa-nav-list">
+                <!-- Employee management link -->
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions link -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans link -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <!-- Loan extensions link -->
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <!-- Loan disbursements link -->
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <!-- Repayment schedules link (current section) -->
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link active" aria-current="page"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <!-- Repayments link -->
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <!-- Security group heading -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <!-- Security group list -->
+            <ul class="fa-nav-list">
+                <!-- User accounts link -->
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <!-- Role management link -->
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <!-- Account group heading -->
+            <p class="fa-nav-heading">Account</p>
+            <!-- Account group list -->
+            <ul class="fa-nav-list">
+                <!-- Change password link -->
+                <li><a th:href="@{/change-password}" class="fa-nav-link"><i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span></a></li>
+                <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                <li>
+                    <!-- Logout form -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <!-- Logout button -->
+                        <button type="submit" class="fa-nav-link fa-nav-button"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span></button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dark overlay shown behind mobile sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <!-- Right side wrapper with topbar and content -->
+    <div class="fa-main-wrap">
+
+        <!-- Top bar -->
+        <header class="fa-topbar">
+            <!-- Left part of top bar -->
+            <div class="fa-topbar-left">
+                <!-- Hamburger button for mobile -->
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle" aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i></button>
+                <!-- App title in top bar -->
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+            <!-- Right part of top bar -->
+            <div class="fa-topbar-right">
+                <!-- Notification button placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i></button>
+                <!-- Profile dropdown wrapper -->
+                <div class="dropdown">
+                    <!-- Button that opens the profile menu -->
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Avatar circle -->
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <!-- Name and role, hidden on tiny screens -->
+                        <span class="fa-profile-meta d-none d-sm-flex"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></span>
+                    </button>
+                    <!-- Dropdown menu items -->
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <!-- Dropdown header with username and role -->
+                        <li class="fa-dropdown-header"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Profile link -->
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <!-- Change password link -->
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                        <li><form th:action="@{/logout}" method="post"><button type="submit" class="dropdown-item fa-dropdown-danger"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out</button></form></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content; isEdit is true when editing an existing schedule -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="isEdit=${editMode != null and editMode}">
+
+            <!-- Page header with title and back button -->
+            <div class="fa-page-header flex-wrap">
+                <!-- Title block -->
+                <div>
+                    <!-- Page title changes with mode -->
+                    <h1 class="fa-page-title" th:text="${isEdit ? 'Edit Repayment Schedule' : 'Add Repayment Schedule'}">Add Repayment Schedule</h1>
+                    <!-- Page description changes with mode -->
+                    <p class="fa-page-subtitle" th:text="${isEdit ? 'Update this pending installment.' : 'Create an installment schedule entry for an existing loan.'}">Create an installment schedule entry for an existing loan.</p>
+                    <!-- Breadcrumb trail -->
+                    <nav aria-label="Breadcrumb">
+                        <!-- Breadcrumb list -->
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <!-- Dashboard crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <!-- Schedules list crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/repayment-schedules}">Repayment Schedules</a></li>
+                            <!-- Details crumb, edit mode only -->
+                            <li class="breadcrumb-item" th:if="${isEdit}"><a th:href="@{/admin/repayment-schedules/{id}(id=${schedule.id})}">Schedule Details</a></li>
+                            <!-- Current page crumb -->
+                            <li class="breadcrumb-item active" aria-current="page" th:text="${isEdit ? 'Edit Schedule' : 'Add Schedule'}">Add Schedule</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- Back button goes to details (edit) or list (create) -->
+                <a th:href="${isEdit} ? @{/admin/repayment-schedules/{id}(id=${schedule.id})} : @{/admin/repayment-schedules}" class="fa-btn fa-btn-outline">
+                    <!-- Left arrow icon -->
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                    <!-- Back button label -->
+                    <span th:text="${isEdit ? 'Back to Schedule Details' : 'Back to Repayment Schedules'}">Back to Repayment Schedules</span>
+                </a>
+            </div>
+
+            <!-- Area for flash messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <!-- Error alert, shown only if errorMessage exists -->
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Form card -->
+            <section class="fa-card fa-form-card" aria-labelledby="scheduleFormTitle">
+                <!-- Card header -->
+                <div class="fa-card-header">
+                    <!-- Card title changes with mode -->
+                    <h2 class="fa-card-title" id="scheduleFormTitle" th:text="${isEdit ? 'Installment Details (PENDING)' : 'Installment Details'}">Installment Details</h2>
+                </div>
+
+                <!-- Form posts to the create or update route and binds to the schedule object -->
+                <form method="post"
+                      th:action="${isEdit} ? @{/admin/repayment-schedules/{id}/update(id=${schedule.id})} : @{/admin/repayment-schedules}"
+                      th:object="${schedule}">
+
+                    <!-- Validation errors for every field, including ones not shown on the form -->
+                    <div class="rs-form-section pb-0" th:if="${#fields.hasErrors('*')}">
+                        <!-- Red alert box -->
+                        <div class="alert alert-danger fa-alert mb-0" role="alert">
+                            <!-- Error icon -->
+                            <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                            <!-- One line per error, prefixed with the field name when there is one -->
+                            <span class="d-block" th:each="err : ${#fields.detailedErrors()}"
+                                  th:text="${(err.fieldName != null and !#strings.isEmpty(err.fieldName) ? err.fieldName + ': ' : '') + err.message}">Validation error.</span>
+                        </div>
+                    </div>
+
+                    <!-- Section 1: parent loan -->
+                    <div class="rs-form-section">
+                        <!-- Section title -->
+                        <h3 class="rs-form-section-title">Parent Loan</h3>
+                        <!-- Grid row -->
+                        <div class="row g-3">
+                            <!-- Loan ID column -->
+                            <div class="col-12 col-md-6">
+                                <!-- Loan ID label with required marker -->
+                                <label for="loanApplicationId" class="fa-label">Loan Application ID <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Loan ID input, read-only in edit mode -->
+                                <input type="text" id="loanApplicationId" name="loanApplicationId" class="form-control fa-input"
+                                       th:value="${loanApplicationId != null ? loanApplicationId : (param.loanApplicationId != null ? param.loanApplicationId[0] : (schedule != null and schedule.loan != null ? schedule.loan.loanApplicationId : ''))}"
+                                       placeholder="e.g. LOAN-10001" th:readonly="${isEdit}" th:classappend="${isEdit} ? 'bg-body-secondary'"
+                                       autocomplete="off" spellcheck="false" maxlength="50"
+                                       aria-describedby="loanApplicationIdHelp" required>
+                                <!-- Loan ID help text changes with mode -->
+                                <div class="rs-form-help" id="loanApplicationIdHelp" th:text="${isEdit ? 'Loan Application ID cannot be changed on an existing schedule.' : 'Enter the official Loan Application ID of an existing loan.'}">Enter the official Loan Application ID of an existing loan.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: installment -->
+                    <div class="rs-form-section">
+                        <!-- Section title -->
+                        <h3 class="rs-form-section-title">Installment</h3>
+                        <!-- Grid row -->
+                        <div class="row g-3">
+                            <!-- Installment number column -->
+                            <div class="col-12 col-md-6">
+                                <!-- Installment number label with required marker -->
+                                <label for="installmentNumber" class="fa-label">Installment Number <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Installment number input bound to installmentNumber -->
+                                <input type="number" id="installmentNumber" th:field="*{installmentNumber}" class="form-control fa-input"
+                                       min="1" step="1" inputmode="numeric" placeholder="e.g. 1"
+                                       th:classappend="${#fields.hasErrors('installmentNumber')} ? 'is-invalid'"
+                                       aria-describedby="installmentNumberHelp installmentNumberError" required>
+                                <!-- Installment number help text -->
+                                <div class="rs-form-help" id="installmentNumberHelp">Position of this installment in the loan, starting at 1.</div>
+                                <!-- Installment number error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="installmentNumberError"
+                                     th:if="${#fields.hasErrors('installmentNumber')}" th:errors="*{installmentNumber}">Installment number error.</div>
+                            </div>
+
+                            <!-- Due date column -->
+                            <div class="col-12 col-md-6">
+                                <!-- Due date label with required marker -->
+                                <label for="dueDate" class="fa-label">Due Date <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Due date input bound to dueDate -->
+                                <input type="date" id="dueDate" th:field="*{dueDate}" class="form-control fa-input"
+                                       th:classappend="${#fields.hasErrors('dueDate')} ? 'is-invalid'"
+                                       aria-describedby="dueDateHelp dueDateError" required>
+                                <!-- Due date help text -->
+                                <div class="rs-form-help" id="dueDateHelp">The date this installment must be paid.</div>
+                                <!-- Due date error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="dueDateError"
+                                     th:if="${#fields.hasErrors('dueDate')}" th:errors="*{dueDate}">Due date error.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: amounts -->
+                    <div class="rs-form-section">
+                        <!-- Section title -->
+                        <h3 class="rs-form-section-title">Amounts</h3>
+                        <!-- Grid row -->
+                        <div class="row g-3">
+                            <!-- Principal column -->
+                            <div class="col-12 col-md-4">
+                                <!-- Principal label with required marker -->
+                                <label for="principalAmount" class="fa-label">Principal Amount <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Principal input bound to principalAmount -->
+                                <input type="number" id="principalAmount" th:field="*{principalAmount}" class="form-control fa-input"
+                                       step="0.01" min="0" inputmode="decimal" placeholder="e.g. 900.00"
+                                       th:classappend="${#fields.hasErrors('principalAmount')} ? 'is-invalid'"
+                                       aria-describedby="principalAmountError" required>
+                                <!-- Principal error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="principalAmountError"
+                                     th:if="${#fields.hasErrors('principalAmount')}" th:errors="*{principalAmount}">Principal error.</div>
+                            </div>
+
+                            <!-- Interest column -->
+                            <div class="col-12 col-md-4">
+                                <!-- Interest label with required marker -->
+                                <label for="interestAmount" class="fa-label">Interest Amount <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Interest input bound to interestAmount -->
+                                <input type="number" id="interestAmount" th:field="*{interestAmount}" class="form-control fa-input"
+                                       step="0.01" min="0" inputmode="decimal" placeholder="e.g. 100.00"
+                                       th:classappend="${#fields.hasErrors('interestAmount')} ? 'is-invalid'"
+                                       aria-describedby="interestAmountError" required>
+                                <!-- Interest error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="interestAmountError"
+                                     th:if="${#fields.hasErrors('interestAmount')}" th:errors="*{interestAmount}">Interest error.</div>
+                            </div>
+
+                            <!-- Total column -->
+                            <div class="col-12 col-md-4">
+                                <!-- Total label with required marker -->
+                                <label for="totalInstallmentAmount" class="fa-label">Total Amount <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Total input bound to totalInstallmentAmount, auto-filled from principal plus interest -->
+                                <input type="number" id="totalInstallmentAmount" th:field="*{totalInstallmentAmount}" class="form-control fa-input"
+                                       step="0.01" min="0.01" inputmode="decimal" placeholder="e.g. 1000.00"
+                                       th:classappend="${#fields.hasErrors('totalInstallmentAmount')} ? 'is-invalid'"
+                                       aria-describedby="totalInstallmentAmountHelp totalInstallmentAmountError" required>
+                                <!-- Total help text -->
+                                <div class="rs-form-help" id="totalInstallmentAmountHelp">Filled in as principal plus interest; you can change it.</div>
+                                <!-- Total error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="totalInstallmentAmountError"
+                                     th:if="${#fields.hasErrors('totalInstallmentAmount')}" th:errors="*{totalInstallmentAmount}">Total error.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info panel for create mode -->
+                    <div class="rs-form-section pt-0" th:unless="${isEdit}">
+                        <!-- Panel box -->
+                        <div class="rs-info-panel">
+                            <!-- Panel icon -->
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            <!-- Panel text -->
+                            <div><strong>Before you submit</strong><ul><li>The loan must already exist.</li><li>New schedules start as PENDING.</li><li>Overdue and cancelled states are set from the details page.</li></ul></div>
+                        </div>
+                    </div>
+
+                    <!-- Info panel for edit mode -->
+                    <div class="rs-form-section pt-0" th:if="${isEdit}">
+                        <!-- Panel box -->
+                        <div class="rs-info-panel">
+                            <!-- Panel icon -->
+                            <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                            <!-- Panel text -->
+                            <div><strong>Editing a pending schedule</strong><ul><li>Only PENDING schedules can be edited.</li><li>The parent loan and the status cannot be changed here.</li></ul></div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: form buttons -->
+                    <div class="rs-form-section rs-form-actions">
+                        <!-- Cancel back to the list, create mode -->
+                        <a th:unless="${isEdit}" th:href="@{/admin/repayment-schedules}" class="fa-btn fa-btn-outline">Cancel</a>
+                        <!-- Cancel back to details, edit mode -->
+                        <a th:if="${isEdit}" th:href="@{/admin/repayment-schedules/{id}(id=${schedule.id})}" class="fa-btn fa-btn-outline">Cancel</a>
+                        <!-- Submit button -->
+                        <button type="submit" class="fa-btn fa-btn-primary">
+                            <!-- Check icon -->
+                            <i class="bi bi-check-lg" aria-hidden="true"></i>
+                            <!-- Submit label changes with mode -->
+                            <span th:text="${isEdit ? 'Update Schedule' : 'Create Schedule'}">Create Schedule</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </main>
+
+        <!-- Page footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<!-- Load Bootstrap JavaScript (dropdowns, alerts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load FundAxis dashboard script (sidebar toggle) -->
+<script th:src="@{/js/dashboard.js}"></script>
+<!-- Small script that fills the total from principal plus interest -->
+<script>
+    (function () { // Keep variables private
+        var principal = document.getElementById('principalAmount'); // Principal input
+        var interest = document.getElementById('interestAmount'); // Interest input
+        var total = document.getElementById('totalInstallmentAmount'); // Total input
+        var touched = total.value !== ''; // A total that is already filled is never overwritten
+        total.addEventListener('input', function () { touched = true; }); // Stop auto-fill once the admin types a total
+        function fillTotal() { // Write principal plus interest into the total
+            if (touched) { return; } // Respect a manual total
+            var a = parseFloat(principal.value) || 0; // Principal as a number
+            var b = parseFloat(interest.value) || 0; // Interest as a number
+            total.value = (a + b).toFixed(2); // Show the sum with two decimals
+        }
+        principal.addEventListener('input', fillTotal); // Recalculate when principal changes
+        interest.addEventListener('input', fillTotal); // Recalculate when interest changes
+    })();
+</script>
+</body>
+</html>

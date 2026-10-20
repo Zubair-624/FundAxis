@@ -7,6 +7,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+///========== Primary Admin and Secondary Admin both use the ADMIN dashboard, because both have the same ADMIN authority. We do not need a separate Primary/Secondary Admin dashboard. ==========///
+
 // =========================================================
 // DASHBOARD CONTROLLER
 //
@@ -16,14 +18,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 // - IT_SUPPORT  -> /it-support/dashboard
 // - USER        -> /user/dashboard
 //
-// Access is protected twice:
-// 1. URL rules in SecurityConfig (webSecurityFilterChain)
-// 2. @PreAuthorize on each method below
+// Serves role-based dashboards with secured access.
 // =========================================================
 @Controller
 public class DashboardController {
 
-    // Redirect an authenticated user to the correct dashboard
+    ///========== Redirect an authenticated user to the correct dashboard ==========///
+
     // Used by /dashboard, which any logged-in user can open
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/dashboard")
@@ -48,6 +49,9 @@ public class DashboardController {
         throw new AccessDeniedException("No FundAxis dashboard is available for this account");
     }
 
+
+    ///========== ADMIN Dashboard ==========///
+
     // ADMIN dashboard
     // Returns the Thymeleaf template: admin/dashboard
     @PreAuthorize("hasRole('ADMIN')")
@@ -56,6 +60,9 @@ public class DashboardController {
         return "admin/dashboard";
     }
 
+
+    ///========== IT Support Dashboard ==========///
+
     // IT Support dashboard
     // Returns the Thymeleaf template: it-support/dashboard
     @PreAuthorize("hasRole('IT_SUPPORT')")
@@ -63,6 +70,9 @@ public class DashboardController {
     public String itSupportDashboard() {
         return "it-support/dashboard";
     }
+
+
+    ///========== Normal Employee (User) Dashboard ==========///
 
     // Normal employee dashboard
     // Returns the Thymeleaf template: user/dashboard

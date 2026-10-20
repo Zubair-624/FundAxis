@@ -34,15 +34,13 @@ public class LoanExtension {
 
 
     ///---------- Loan End Date Before The Requested Extension ----------
-    @NotNull(message = "Original end date is required")
-    @Column(name = "original_end_date", nullable = false)
-    private LocalDate originalEndDate;
+    @Column(name = "original_end_date", nullable = false) // Required in the database, set by the service
+    private LocalDate originalEndDate; // Loan end date before the extension
 
 
     ///---------- New Loan End Date Requested By The Employee ----------
-    @NotNull(message = "Requested end date is required")
-    @Column(name = "requested_end_date", nullable = false)
-    private LocalDate requestedEndDate;
+    @Column(name = "requested_end_date", nullable = false) // Required in the database, set by the service
+    private LocalDate requestedEndDate; // New end date after the extension
 
 
     ///---------- Number Of Additional Months Requested ----------
@@ -58,10 +56,9 @@ public class LoanExtension {
 
 
     ///---------- Date When The Extension Request Was Submitted ----------
-    @NotNull(message = "Request date is required")
-    @PastOrPresent(message = "Request date cannot be in the future")
-    @Column(name = "request_date", nullable = false)
-    private LocalDate requestDate;
+    @PastOrPresent(message = "Request date cannot be in the future") // Null passes, a future date fails
+    @Column(name = "request_date", nullable = false) // Required in the database, set by the service
+    private LocalDate requestDate; // Date the request was made
 
 
     ///---------- Current Extension Request Status ----------

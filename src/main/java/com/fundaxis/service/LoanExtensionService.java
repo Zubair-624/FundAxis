@@ -45,8 +45,11 @@ public class LoanExtensionService {
 
         }
 
-        // Requested end date must be after the original end date
-        validateExtensionDates(loanExtension.getOriginalEndDate(), loanExtension.getRequestedEndDate());
+        LocalDate loanEndDate = calculateCurrentLoanEndDate(loan); // Work out the loan's current end date
+        loanExtension.setOriginalEndDate(loanEndDate); // Original end date is the calculated date
+        loanExtension.setRequestedEndDate(loanEndDate.plusMonths(loanExtension.getExtensionMonths())); // Original date plus months
+        loanExtension.setRequestDate(LocalDate.now()); // Request date is today
+        validateExtensionDates(loanExtension.getOriginalEndDate(), loanExtension.getRequestedEndDate()); // Keep the date check
 
         // Connect the extension request with the loan
         loanExtension.setLoan(loan);
@@ -63,6 +66,17 @@ public class LoanExtensionService {
 
         return loanExtensionRepository.save(loanExtension);
 
+    }
+
+
+    ///---------- Calculate The Loan's Current End Date ----------
+    private LocalDate calculateCurrentLoanEndDate(Loan loan) {
+        LocalDate startDate = loan.getApprovalDate() != null ? loan.getApprovalDate() : loan.getApplicationDate(); // Use approval date, else application date
+        int approvedExtraMonths = loanExtensionRepository.findByLoanIdOrderByRequestDateDesc(loan.getId()).stream() // Load this loan's extensions
+                .filter(e -> e.getExtensionStatus() == LoanExtension.ExtensionStatus.APPROVED) // Keep only approved ones
+                .mapToInt(LoanExtension::getExtensionMonths) // Take each one's months
+                .sum(); // Add them up
+        return startDate.plusMonths(loan.getTenureMonths() + approvedExtraMonths); // Start date plus tenure plus approved extensions
     }
 
 
@@ -136,23 +150,25 @@ public class LoanExtensionService {
 
         }
 
-        // Requested end date must be after the original end date
-        validateExtensionDates(updatedExtension.getOriginalEndDate(), updatedExtension.getRequestedEndDate());
+        BeanUtils.copyProperties( // Copy only the editable fields
+                updatedExtension, // Source: the submitted form object
+                existingExtension, // Target: the saved record
+                "id", // Never copy the id
+                "loan", // Never change the parent loan
+                "originalEndDate", // NEW: keep the saved original end date
+                "requestedEndDate", // NEW: recalculated below
+                "requestDate", // NEW: keep the saved request date
+                "extensionStatus", // Never change the status here
+                "approvalDate", // Controlled by the approval workflow
+                "approvedBy", // Controlled by the approval workflow
+                "rejectionReason", // Controlled by the rejection workflow
+                "createdAt", // Managed by Hibernate
+                "updatedAt"); // Managed by Hibernate
 
-        // Copy editable fields while protecting system-controlled fields
-        BeanUtils.copyProperties(
-                updatedExtension,
-                existingExtension,
-                "id",
-                "loan",
-                "extensionStatus",
-                "approvalDate",
-                "approvedBy",
-                "rejectionReason",
-                "createdAt",
-                "updatedAt");
+        existingExtension.setRequestedEndDate(existingExtension.getOriginalEndDate().plusMonths(existingExtension.getExtensionMonths())); // Recalculate from the new months
+        validateExtensionDates(existingExtension.getOriginalEndDate(), existingExtension.getRequestedEndDate()); // Keep the date check
 
-        return loanExtensionRepository.save(existingExtension);
+        return loanExtensionRepository.save(existingExtension); // Save the updated record
 
     }
 
@@ -190,6 +206,7 @@ public class LoanExtensionService {
 
     }
 
+    
 
     ///---------- Reject A Pending Extension Request ----------
     @Transactional

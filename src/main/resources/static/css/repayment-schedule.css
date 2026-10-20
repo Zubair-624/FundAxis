@@ -1,0 +1,129 @@
+/* ===== FundAxis Repayment Schedule module styles (reuses dashboard.css and admin-employees.css) ===== */
+
+/* Colour tokens used only by this module */
+:root { --rs-brand: #024731; --rs-brand-soft: #e6f1ed; --rs-border: #dbe5e1; --rs-muted: #5b6b66; --rs-text: #1f2d29; --rs-warning-bg: #fff7e0; --rs-warning-border: #f0d78a; --rs-danger-bg: #fdecec; --rs-danger-border: #f2b8b5; } /* Brand, neutrals, warning and danger tones */
+
+/* ---------- Status badges (extends the shared fa-status classes) ---------- */
+.fa-status-warning { background: var(--rs-warning-bg); color: #7a5a00; border: 1px solid var(--rs-warning-border); } /* OVERDUE badge */
+
+/* ---------- Table helpers ---------- */
+.rs-amount { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; } /* Align money digits */
+
+/* ---------- Summary cards row (five cards) ---------- */
+.rs-summary-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1.5rem; } /* Six equal columns on wide screens */
+
+/* ---------- Detail grid (two columns of label and value pairs) ---------- */
+.rs-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; } /* Two columns */
+.rs-detail-item { padding: .9rem 1.25rem; border-bottom: 1px solid var(--rs-border); min-width: 0; } /* Ruled cell */
+.rs-detail-item:nth-child(odd) { border-right: 1px solid var(--rs-border); } /* Divider between the two columns */
+.rs-detail-item:last-child:nth-child(odd) { grid-column: 1 / -1; border-right: 0; } /* A lone last item spans the full row */
+.rs-detail-label { display: block; font-size: .8rem; color: var(--rs-muted); margin-bottom: .15rem; } /* Small muted label */
+.rs-detail-value { display: block; font-weight: 600; color: var(--rs-text); overflow-wrap: anywhere; margin: 0; } /* Bold value that wraps */
+
+/* ---------- Workflow action bar ---------- */
+.rs-action-bar { display: flex; flex-wrap: wrap; gap: .75rem; padding: 1.25rem; } /* Buttons wrap on small screens */
+.rs-action-note { padding: 0 1.25rem 1.25rem; margin: 0; color: var(--rs-muted); font-size: .875rem; } /* Hint under the buttons */
+.rs-terminal-note { padding: 1.25rem; margin: 0; color: var(--rs-muted); } /* Message when no action is available */
+.fa-btn-danger-outline { border: 1px solid #b42318; color: #b42318; background: #fff; } /* Destructive outline button */
+.fa-btn-danger-outline:hover { background: #b42318; color: #fff; } /* Fill on hover */
+.fa-btn-danger { border: 1px solid #b42318; color: #fff; background: #b42318; } /* Destructive solid button */
+.fa-btn-warning { border: 1px solid #b7791f; color: #4a3200; background: #f6c453; } /* Mark Overdue button */
+
+/* ---------- Form layout (section blocks, titles, help text, button bar) ---------- */
+.rs-form-section { padding: 1.25rem 1.5rem; border-top: 1px solid var(--rs-border); } /* Padded block separated by a divider */
+.rs-form-section.pt-0 { border-top: 0; } /* No divider for blocks attached to the one above */
+.rs-form-section-title { font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--rs-brand); margin: 0 0 1rem; } /* Small section heading */
+.rs-form-help { font-size: .8rem; color: var(--rs-muted); margin-top: .35rem; } /* Small muted help text under a field */
+.rs-form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; background: #f8fbfa; border-radius: 0 0 .75rem .75rem; } /* Right-aligned button bar */
+.rs-info-panel { display: flex; gap: .8rem; align-items: flex-start; border: 1px solid var(--rs-border); border-left: 4px solid var(--rs-brand); background: var(--rs-brand-soft); border-radius: .5rem; padding: 1rem 1.25rem; } /* Rules panel with an icon */
+.rs-info-panel > i { flex: 0 0 auto; font-size: 1.2rem; color: var(--rs-brand); } /* Panel icon */
+.rs-info-panel ul { margin: .4rem 0 0; padding-left: 1.2rem; } /* Tidy list spacing */
+
+/* ---------- Modal content ---------- */
+.rs-modal-warning, .rs-modal-danger { display: flex; gap: .8rem; align-items: flex-start; border-radius: .75rem; padding: 1rem; } /* Shared notice box */
+.rs-modal-warning { background: var(--rs-warning-bg); border: 1px solid var(--rs-warning-border); color: #6b510d; } /* Warning tone for Mark Overdue */
+.rs-modal-danger { background: var(--rs-danger-bg); border: 1px solid var(--rs-danger-border); color: #7d2727; } /* Danger tone for Cancel */
+.rs-modal-warning > i, .rs-modal-danger > i { flex: 0 0 auto; font-size: 1.2rem; line-height: 1.2; } /* Notice icon */
+.rs-modal-summary { display: grid; gap: 0; margin-top: 1rem; border: 1px solid var(--rs-border); border-radius: .75rem; overflow: hidden; } /* Boxed summary list */
+.rs-modal-summary > div { display: flex; justify-content: space-between; gap: 1rem; padding: .75rem .9rem; background: #fff; } /* One summary row */
+.rs-modal-summary > div + div { border-top: 1px solid var(--rs-border); } /* Line between rows */
+.rs-modal-summary span { color: var(--rs-muted); } /* Row label */
+.rs-modal-summary strong { color: var(--rs-text); text-align: right; } /* Row value */
+
+/* ---------- Details page: PARTIAL badge, header buttons, status note ---------- */
+.fa-status-primary { background: var(--rs-brand-soft); color: var(--rs-brand); border: 1px solid #b7d6cb; } /* PARTIAL badge in brand green */
+.rs-header-actions { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; } /* Edit and Back buttons side by side */
+.rs-status-note { margin: .6rem 0 0; font-size: .85rem; font-weight: 400; color: var(--rs-muted); } /* Plain-language status explanation */
+
+/* ---------- Details page: due state pill ---------- */
+.rs-due-state { display: inline-block; padding: .2rem .7rem; border-radius: 999px; font-size: .8rem; font-weight: 700; border: 1px solid var(--rs-border); background: #fff; } /* Pill base */
+.rs-due-paid { background: #e3f4ea; color: #1b6b3a; border-color: #b5dcc3; } /* Paid */
+.rs-due-cancelled { background: #eef0ef; color: #55615d; border-color: #d3d8d6; } /* Cancelled */
+.rs-due-past { background: var(--rs-danger-bg); color: #9a1c14; border-color: var(--rs-danger-border); } /* Past due */
+.rs-due-today { background: var(--rs-warning-bg); color: #7a5a00; border-color: var(--rs-warning-border); } /* Due today */
+.rs-due-upcoming { background: var(--rs-brand-soft); color: var(--rs-brand); border-color: #b7d6cb; } /* Upcoming */
+.rs-due-days { display: block; margin-top: .2rem; font-size: .8rem; font-weight: 500; color: var(--rs-muted); } /* Countdown text under the due date */
+.rs-due-days-late { color: #9a1c14; font-weight: 600; } /* Red only when the installment is overdue */
+
+/* ---------- Details page: financial ledger ---------- */
+.rs-ledger { padding: 1rem 1.25rem 1.25rem; max-width: 480px; } /* Narrow so labels and amounts stay close */
+.rs-ledger-row { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem 0; font-variant-numeric: tabular-nums; } /* One line item */
+.rs-ledger-row span { color: var(--rs-muted); } /* Line label */
+.rs-ledger-row strong { color: var(--rs-text); text-align: right; } /* Line amount */
+.rs-ledger-total { border-top: 2px solid var(--rs-text); margin-top: .3rem; padding-top: .7rem; font-size: 1.1rem; } /* Rule above the total */
+.rs-ledger-total span, .rs-ledger-total strong { color: var(--rs-brand); font-weight: 700; } /* Emphasise the total */
+.rs-ledger-sep { border-top: 1px dashed var(--rs-border); margin-top: .9rem; padding-top: .9rem; } /* Gap before paid and remaining */
+
+/* ---------- Details page: payment progress ---------- */
+.rs-progress-wrap { padding: 1.25rem; } /* Padding around the bar */
+.rs-progress { height: .9rem; background-color: #e9efed; border-radius: 999px; } /* Bar track */
+.rs-progress .progress-bar { background-color: var(--rs-brand); border-radius: 999px; } /* Filled part in brand green */
+.rs-progress-legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; margin-top: .6rem; font-size: .9rem; } /* Percent paid and remaining */
+
+/* ---------- Details page: health panel ---------- */
+.rs-health { border: 1px solid var(--rs-warning-border); border-left: 4px solid #d69e2e; background: var(--rs-warning-bg); border-radius: .5rem; padding: .9rem 1.1rem; margin-bottom: 1.5rem; } /* Amber panel above the content */
+.rs-health-title { display: flex; align-items: center; gap: .5rem; margin: 0 0 .4rem; font-weight: 700; color: #6b510d; } /* Panel heading with icon */
+.rs-health ul { margin: 0; padding-left: 1.2rem; } /* Warning list */
+.rs-health li { margin: .15rem 0; color: #6b510d; } /* One warning */
+.rs-health .rs-health-error { color: #9a1c14; font-weight: 600; } /* Data inconsistencies stand out in red */
+
+/* ---------- Details page: loan plan totals and status counts ---------- */
+.rs-total-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding: 1.25rem; } /* Six boxes in two rows of three */
+.rs-total-box { border: 1px solid var(--rs-border); border-radius: .75rem; padding: .9rem 1rem; background: #fff; } /* Plain total box */
+.rs-total-box-key { border-color: var(--rs-brand); background: var(--rs-brand-soft); } /* Highlight the scheduled total */
+.rs-total-label { display: block; font-size: .8rem; color: var(--rs-muted); } /* Box caption */
+.rs-total-value { display: block; font-size: 1.2rem; font-weight: 700; color: var(--rs-brand); font-variant-numeric: tabular-nums; } /* Box figure */
+.rs-count-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem; padding: 1.25rem; } /* Five status count boxes */
+.rs-count-box { display: flex; flex-direction: column; align-items: flex-start; gap: .4rem; border: 1px solid var(--rs-border); border-radius: .75rem; padding: .8rem 1rem; background: #fff; } /* Badge above a number */
+.rs-count-box strong { font-size: 1.4rem; line-height: 1; color: var(--rs-text); } /* The count */
+
+/* ---------- Details page: installment table with the current row highlighted ---------- */
+.rs-plan-table tbody tr.rs-row-current { --bs-table-bg: var(--rs-brand-soft); font-weight: 600; } /* Tint the whole current row */
+.rs-plan-table tbody tr.rs-row-current td:first-child { border-left: 4px solid var(--rs-brand); } /* Green bar on the current row */
+.rs-current-tag { display: inline-block; margin-left: .4rem; padding: .05rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 700; color: #fff; background: var(--rs-brand); } /* Text label so the highlight is not colour-only */
+
+/* ---------- Details page: previous/next and quick links ---------- */
+.rs-nav-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; margin: 1.5rem 0 1rem; } /* Previous on the left, Next on the right */
+.rs-quick-links { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; } /* Row of link buttons */
+
+/* ---------- Details page: responsive ---------- */
+@media (max-width: 1199.98px) { .rs-count-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } } /* Three count boxes per row */
+@media (max-width: 767.98px) { .rs-total-grid { grid-template-columns: 1fr 1fr; } } /* Two total boxes per row */
+@media (max-width: 767.98px) { .rs-count-grid { grid-template-columns: 1fr 1fr; } } /* Two count boxes per row */
+@media (max-width: 767.98px) { .rs-nav-bar .fa-btn, .rs-quick-links .fa-btn { flex: 1 1 100%; justify-content: center; } } /* Full-width link buttons */
+@media (max-width: 479.98px) { .rs-total-grid, .rs-count-grid { grid-template-columns: 1fr; } } /* One box per row on phones */
+
+/* ---------- Keyboard focus ---------- */
+.rs-action-bar .fa-btn:focus-visible, .modal .fa-btn:focus-visible { outline: 3px solid #7fb8a4; outline-offset: 2px; } /* Clear focus ring on buttons */
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1199.98px) { .rs-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } } /* Three cards per row */
+@media (max-width: 767.98px) { .rs-detail-grid { grid-template-columns: 1fr; } } /* One detail column */
+@media (max-width: 767.98px) { .rs-detail-item:nth-child(odd) { border-right: 0; } } /* No divider in one column */
+@media (max-width: 767.98px) { .rs-summary-grid { grid-template-columns: 1fr 1fr; } } /* Two cards per row */
+@media (max-width: 767.98px) { .rs-form-actions, .rs-action-bar { align-items: stretch; } } /* Stretch the button bars */
+@media (max-width: 767.98px) { .rs-form-actions .fa-btn, .rs-action-bar .fa-btn { justify-content: center; flex: 1 1 100%; } } /* Full-width buttons */
+@media (max-width: 479.98px) { .rs-summary-grid { grid-template-columns: 1fr; } } /* One card per row */
+@media (max-width: 479.98px) { .rs-info-panel { flex-direction: column; } } /* Stack icon above text */
+@media (max-width: 479.98px) { .rs-modal-summary > div { flex-direction: column; gap: .2rem; } } /* Stack label above value */
+@media (max-width: 479.98px) { .rs-modal-summary strong { text-align: left; } } /* Left-align values when stacked */

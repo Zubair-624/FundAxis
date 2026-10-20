@@ -11,7 +11,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonFormat;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -54,6 +54,12 @@ public class Employee {
     @Column(length = 20)
     private String phoneNumber;
 
+
+    @NotBlank(message = "Designation name is required")
+    @Column(nullable = false, length = 100)
+    private String designation;
+
+
     ///---------- enum ---------------------------------
 
     // Nested Enum
@@ -67,6 +73,20 @@ public class Employee {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private EmployeeStatus employeeStatus = EmployeeStatus.ACTIVE;
+
+
+    // ---------- Fund Membership Information ----------
+
+    // Date the employee officially joined the fund
+    @Column(name = "fund_join_date")
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate fundJoinDate;
+
+    // Date the employee officially exited the fund
+    // Null means no fund exit date has been recorded
+    @Column(name = "fund_exit_date")
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate fundExitDate;
 
     ///---------- Local Time Setup / Audit Information ------------
 

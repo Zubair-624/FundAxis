@@ -68,9 +68,12 @@ public class LoanService {
 
     ///==================== Read Loan ====================///
 
+
+
+
     ///---------- Get All Loans ----------
     @Transactional(readOnly = true)
-    public List<Loan> getAllLoans() {
+    public List<Loan> getAllLoansList() {
 
         return loanRepository.findAll();
 
@@ -170,7 +173,7 @@ public class LoanService {
     }
 
 
-//==================== Update Loan ====================//
+    /// ==================== Update Loan ====================///
 
     // Update editable information of a DRAFT loan
     @Transactional

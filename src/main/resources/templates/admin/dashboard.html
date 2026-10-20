@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<!--/* Primary Admin and Secondary Admin share the ADMIN role, so both use this one Admin dashboard. */-->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin Dashboard | FundAxis</title>
+
+    <!-- Bootstrap 5 + Bootstrap Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Shared FundAxis dashboard styles (existing file, no admin-specific CSS) -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+</head>
+<body class="fa-body">
+
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<div class="fa-shell">
+
+    <!-- Admin sidebar navigation -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+        <div class="fa-sidebar-brand">
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="fa-sidebar-nav">
+
+            <!-- Dashboard -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link active" aria-current="page"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <!-- Employee and Fund Management -->
+            <p class="fa-nav-heading">Employee &amp; Fund</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+            </ul>
+
+            <!-- Loan Management -->
+            <p class="fa-nav-heading">Loan Management</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+            </ul>
+
+            <!-- Repayment Management -->
+            <p class="fa-nav-heading">Repayment Management</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <!-- Security and Access -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <!-- Account and Security -->
+            <p class="fa-nav-heading">Account &amp; Security</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span>
+                    </a>
+                </li>
+                <li>
+                    <!-- FundAxis logout form (sidebar) -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile overlay behind sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <div class="fa-main-wrap">
+
+        <!-- FundAxis Admin topbar -->
+        <header class="fa-topbar">
+            <div class="fa-topbar-left">
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle"
+                        aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+
+            <div class="fa-topbar-right">
+                <!-- Notification placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications (none)">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <li class="fa-dropdown-header">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="fa-content" id="main-content" tabindex="-1">
+
+            <!-- Dashboard page header -->
+            <div class="fa-page-header">
+                <div>
+                    <h1 class="fa-page-title">Admin Dashboard</h1>
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/home}">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Global alert messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-info alert-dismissible fade show fa-alert" role="alert" th:if="${infoMessage}">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${infoMessage}">Information message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Welcome section -->
+            <section class="fa-welcome" aria-labelledby="faWelcomeTitle">
+                <div>
+                    <h2 class="fa-welcome-title" id="faWelcomeTitle">
+                        Welcome back, <span sec:authentication="name">Username</span>
+                    </h2>
+                    <p class="fa-welcome-text">Manage FundAxis operations, financial records, user access and employee fund activities from one secure workspace.</p>
+                </div>
+                <div class="fa-welcome-role">
+                    <span class="fa-welcome-role-label">Current role</span>
+                    <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                </div>
+            </section>
+
+            <!-- Admin dashboard summary cards -->
+            <section class="row g-3 mb-3" aria-label="Summary">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Total Employees</p>
+                            <p class="fa-stat-value" th:text="${totalEmployees != null ? totalEmployees : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-piggy-bank" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Total Contributions</p>
+                            <p class="fa-stat-value" th:text="${totalContributions != null ? totalContributions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Active Loans</p>
+                            <p class="fa-stat-value" th:text="${activeLoans != null ? activeLoans : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Pending Actions</p>
+                            <p class="fa-stat-value" th:text="${pendingActions != null ? pendingActions : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Secondary status indicators -->
+            <section class="row g-3 mb-4" aria-label="Status indicators">
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-person-check" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Active User Accounts</p>
+                            <p class="fa-stat-value" th:text="${activeAccountCount != null ? activeAccountCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-person-lock" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Locked Accounts</p>
+                            <p class="fa-stat-value" th:text="${lockedAccountCount != null ? lockedAccountCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Pending Loan Applications</p>
+                            <p class="fa-stat-value" th:text="${pendingLoanCount != null ? pendingLoanCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-calendar-plus" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Pending Extensions</p>
+                            <p class="fa-stat-value" th:text="${pendingExtensionCount != null ? pendingExtensionCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Pending Disbursements</p>
+                            <p class="fa-stat-value" th:text="${pendingDisbursementCount != null ? pendingDisbursementCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-4">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Due Repayment Schedules</p>
+                            <p class="fa-stat-value" th:text="${dueRepaymentScheduleCount != null ? dueRepaymentScheduleCount : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="row g-3">
+
+                <!-- Recent FundAxis activity -->
+                <section class="col-12 col-xl-8" aria-labelledby="faActivityTitle">
+                    <div class="fa-card h-100">
+                        <div class="fa-card-header">
+                            <h2 class="fa-card-title" id="faActivityTitle">Recent Activity</h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table fa-table align-middle mb-0">
+                                <caption class="visually-hidden">Recent FundAxis activity</caption>
+                                <thead>
+                                <tr>
+                                    <th scope="col">Activity</th>
+                                    <th scope="col">Reference</th>
+                                    <th scope="col">Module</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Date</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Backend model: recentActivities (activity, reference, module, status, date).
+                                     "date" should already be a formatted string (or a type that prints cleanly). -->
+                                <tr th:each="item : ${recentActivities}"
+                                    th:with="s=${item.status != null ? #strings.toUpperCase(item.status) : ''}">
+                                    <td th:text="${item.activity}">Activity</td>
+                                    <td th:text="${item.reference != null ? item.reference : '--'}">Reference</td>
+                                    <td th:text="${item.module != null ? item.module : '--'}">Module</td>
+                                    <td>
+                                        <span class="fa-status"
+                                              th:classappend="${s == 'PAID' or s == 'APPROVED' or s == 'COMPLETED' or s == 'RELEASED' or s == 'ACTIVE' or s == 'ELIGIBLE'} ? 'fa-status-success'
+                                                  : (${s == 'PENDING' or s == 'APPLIED' or s == 'DRAFT' or s == 'SUBMITTED' or s == 'UNDER_REVIEW'} ? 'fa-status-warning'
+                                                  : (${s == 'REJECTED' or s == 'CANCELLED' or s == 'FAILED' or s == 'LOCKED' or s == 'DISABLED' or s == 'INELIGIBLE' or s == 'REVERSED'} ? 'fa-status-danger' : 'fa-status-neutral'))"
+                                              th:text="${item.status != null ? item.status : '--'}">Status</span>
+                                    </td>
+                                    <td th:text="${item.date != null ? item.date : '--'}">Date</td>
+                                </tr>
+                                <tr th:if="${recentActivities == null or #lists.isEmpty(recentActivities)}">
+                                    <td colspan="5" class="text-center text-secondary py-4">No recent activity available.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+
+                    <!-- Admin quick actions -->
+                    <section aria-labelledby="faQuickTitle">
+                        <div class="fa-card">
+                            <div class="fa-card-header">
+                                <h2 class="fa-card-title" id="faQuickTitle">Quick Actions</h2>
+                            </div>
+                            <div class="fa-quick-list">
+                                <a th:href="@{/admin/employees/new}" class="fa-quick-link"><i class="bi bi-person-plus" aria-hidden="true"></i><span>Add Employee</span></a>
+                                <a th:href="@{/admin/employees}" class="fa-quick-link"><i class="bi bi-people" aria-hidden="true"></i><span>View Employees</span></a>
+                                <a th:href="@{/admin/contributions/new}" class="fa-quick-link"><i class="bi bi-plus-circle" aria-hidden="true"></i><span>Create Contribution</span></a>
+                                <a th:href="@{/admin/loans}" class="fa-quick-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>View Loans</span></a>
+                                <a th:href="@{/admin/user-accounts}" class="fa-quick-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a>
+                                <a th:href="@{/admin/roles}" class="fa-quick-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Pending Admin actions (account links open the User Accounts list already filtered by status) -->
+                    <section aria-labelledby="faPendingTitle">
+                        <div class="fa-card">
+                            <div class="fa-card-header">
+                                <h2 class="fa-card-title" id="faPendingTitle">Pending Actions</h2>
+                            </div>
+                            <div class="fa-quick-list">
+                                <a th:href="@{/admin/loans}" class="fa-quick-link"><span>Pending loan applications</span><span class="fa-status fa-status-neutral ms-auto" th:text="${pendingLoanCount != null ? pendingLoanCount : '--'}">--</span></a>
+                                <a th:href="@{/admin/loan-extensions}" class="fa-quick-link"><span>Pending loan extensions</span><span class="fa-status fa-status-neutral ms-auto" th:text="${pendingExtensionCount != null ? pendingExtensionCount : '--'}">--</span></a>
+                                <a th:href="@{/admin/disbursements}" class="fa-quick-link"><span>Pending disbursements</span><span class="fa-status fa-status-neutral ms-auto" th:text="${pendingDisbursementCount != null ? pendingDisbursementCount : '--'}">--</span></a>
+                                <a th:href="@{/admin/user-accounts(accountStatus='LOCKED')}" class="fa-quick-link"><span>Locked accounts</span><span class="fa-status fa-status-neutral ms-auto" th:text="${lockedAccountCount != null ? lockedAccountCount : '--'}">--</span></a>
+                                <a th:href="@{/admin/user-accounts(accountStatus='PENDING')}" class="fa-quick-link"><span>Pending user accounts</span><span class="fa-status fa-status-neutral ms-auto" th:text="${pendingAccountCount != null ? pendingAccountCount : '--'}">--</span></a>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- System overview -->
+            <section class="mt-3" aria-labelledby="faOverviewTitle">
+                <div class="fa-card">
+                    <div class="fa-card-header">
+                        <h2 class="fa-card-title" id="faOverviewTitle">System Overview</h2>
+                    </div>
+                    <div class="row g-4 p-3 p-md-4">
+                        <div class="col-12 col-md-4">
+                            <h3 class="h6 text-uppercase text-secondary mb-2">Employee Management</h3>
+                            <div class="d-flex justify-content-between py-1"><span>Total</span><strong th:text="${totalEmployees != null ? totalEmployees : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Active</span><strong th:text="${activeEmployeeCount != null ? activeEmployeeCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Inactive</span><strong th:text="${inactiveEmployeeCount != null ? inactiveEmployeeCount : '--'}">--</strong></div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <h3 class="h6 text-uppercase text-secondary mb-2">User Accounts</h3>
+                            <div class="d-flex justify-content-between py-1"><span>Active</span><strong th:text="${activeAccountCount != null ? activeAccountCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Locked</span><strong th:text="${lockedAccountCount != null ? lockedAccountCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Disabled</span><strong th:text="${disabledAccountCount != null ? disabledAccountCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Pending</span><strong th:text="${pendingAccountCount != null ? pendingAccountCount : '--'}">--</strong></div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <h3 class="h6 text-uppercase text-secondary mb-2">Loans</h3>
+                            <div class="d-flex justify-content-between py-1"><span>Draft</span><strong th:text="${draftLoanCount != null ? draftLoanCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Applied</span><strong th:text="${appliedLoanCount != null ? appliedLoanCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Approved</span><strong th:text="${approvedLoanCount != null ? approvedLoanCount : '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Active</span><strong th:text="${activeLoans ?: '--'}">--</strong></div>
+                            <div class="d-flex justify-content-between py-1"><span>Closed</span><strong th:text="${closedLoanCount != null ? closedLoanCount : '--'}">--</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Admin footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

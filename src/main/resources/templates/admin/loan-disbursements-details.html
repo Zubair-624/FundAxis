@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<!--/* Disbursement details + workflow: GET /admin/disbursements/{id} (model: disbursement, totalDisbursedAmount, remainingApprovedAmount) */-->
+<!-- Page root with Thymeleaf and Spring Security namespaces -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head holds metadata and stylesheets -->
+<head>
+    <!-- Use UTF-8 character encoding -->
+    <meta charset="UTF-8">
+    <!-- Make the page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Keep this admin page out of search engines -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Browser tab title -->
+    <title>Loan Disbursement Details | FundAxis</title>
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Load shared FundAxis dashboard styles -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <!-- Load admin employee page styles -->
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <!-- Load the one loan disbursement module stylesheet -->
+    <link th:href="@{/css/loan-disbursements.css}" rel="stylesheet">
+</head>
+
+<!-- Body with the shared FundAxis class -->
+<body class="fa-body"
+      th:with="status=${disbursement.disbursementStatus != null ? disbursement.disbursementStatus.name() : ''},
+               isPending=${disbursement.disbursementStatus != null and disbursement.disbursementStatus.name() == 'PENDING'},
+               isProcessing=${disbursement.disbursementStatus != null and disbursement.disbursementStatus.name() == 'PROCESSING'}">
+
+<!-- Accessibility link to jump past the menu -->
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<!-- Outer shell holding sidebar and content -->
+<div class="fa-shell">
+
+    <!-- Left admin sidebar -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+
+        <!-- Sidebar logo area -->
+        <div class="fa-sidebar-brand">
+            <!-- Logo link back to dashboard -->
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <!-- Logo image -->
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <!-- Brand name text -->
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <!-- Button to close sidebar on mobile -->
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+
+        <!-- Sidebar navigation menu -->
+        <nav class="fa-sidebar-nav">
+            <!-- Dashboard group heading -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <!-- Dashboard group list -->
+            <ul class="fa-nav-list">
+                <!-- Dashboard link -->
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <!-- Administration group heading -->
+            <p class="fa-nav-heading">Administration</p>
+            <!-- Administration group list -->
+            <ul class="fa-nav-list">
+                <!-- Employee management link -->
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions link -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans link -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <!-- Loan extensions link -->
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <!-- Loan disbursements link (current section) -->
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link active" aria-current="page"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <!-- Repayment schedules link -->
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <!-- Repayments link -->
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <!-- Security group heading -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <!-- Security group list -->
+            <ul class="fa-nav-list">
+                <!-- User accounts link -->
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <!-- Role management link -->
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <!-- Account group heading -->
+            <p class="fa-nav-heading">Account</p>
+            <!-- Account group list -->
+            <ul class="fa-nav-list">
+                <!-- Change password link -->
+                <li><a th:href="@{/change-password}" class="fa-nav-link"><i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span></a></li>
+                <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                <li>
+                    <!-- Logout form -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <!-- Logout button -->
+                        <button type="submit" class="fa-nav-link fa-nav-button"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span></button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dark overlay shown behind mobile sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <!-- Right side wrapper with topbar and content -->
+    <div class="fa-main-wrap">
+
+        <!-- Top bar -->
+        <header class="fa-topbar">
+            <!-- Left part of top bar -->
+            <div class="fa-topbar-left">
+                <!-- Hamburger button for mobile -->
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle" aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i></button>
+                <!-- App title in top bar -->
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+            <!-- Right part of top bar -->
+            <div class="fa-topbar-right">
+                <!-- Notification button placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i></button>
+                <!-- Profile dropdown wrapper -->
+                <div class="dropdown">
+                    <!-- Button that opens the profile menu -->
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Avatar circle -->
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <!-- Name and role, hidden on tiny screens -->
+                        <span class="fa-profile-meta d-none d-sm-flex"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></span>
+                    </button>
+                    <!-- Dropdown menu items -->
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <!-- Dropdown header with username and role -->
+                        <li class="fa-dropdown-header"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Profile link -->
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <!-- Change password link -->
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                        <li><form th:action="@{/logout}" method="post"><button type="submit" class="dropdown-item fa-dropdown-danger"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out</button></form></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content; status is the enum name, the two flags decide which workflow buttons show -->
+        <main class="fa-content"
+              id="main-content"
+              tabindex="-1">
+
+            <!-- Page header with title and back button -->
+            <div class="fa-page-header flex-wrap">
+                <!-- Title block -->
+                <div>
+                    <!-- Page title -->
+                    <h1 class="fa-page-title">Loan Disbursement Details</h1>
+                    <!-- Page description -->
+                    <p class="fa-page-subtitle">Review disbursement information and manage its workflow.</p>
+                    <!-- Breadcrumb trail -->
+                    <nav aria-label="Breadcrumb">
+                        <!-- Breadcrumb list -->
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <!-- Dashboard crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <!-- Disbursements list crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/disbursements}">Loan Disbursements</a></li>
+                            <!-- Current page crumb -->
+                            <li class="breadcrumb-item active" aria-current="page">Disbursement Details</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- Back button to the list -->
+                <a th:href="@{/admin/disbursements}" class="fa-btn fa-btn-outline"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Loan Disbursements</a>
+            </div>
+
+            <!-- Area for flash messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <!-- Success alert, shown only if successMessage exists -->
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Error alert, shown only if errorMessage exists -->
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <!-- Warning alert, shown only if warningMessage exists -->
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Card 1: parent loan information -->
+            <section class="fa-card mb-4" aria-labelledby="parentLoanTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="parentLoanTitle">Parent Loan</h2></div>
+                <!-- Label and value grid -->
+                <dl class="fd-detail-grid">
+                    <!-- Loan application ID -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Loan Application ID</dt><dd class="fd-detail-value" th:text="${disbursement.loan != null and disbursement.loan.loanApplicationId != null ? disbursement.loan.loanApplicationId : '--'}">LOAN-10001</dd></div>
+                    <!-- Employee ID -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Employee ID</dt><dd class="fd-detail-value" th:text="${disbursement.loan != null and disbursement.loan.employee != null and disbursement.loan.employee.employeeId != null ? disbursement.loan.employee.employeeId : '--'}">EMP001</dd></div>
+                    <!-- Employee name -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Employee Name</dt><dd class="fd-detail-value" th:text="${disbursement.loan != null and disbursement.loan.employee != null and disbursement.loan.employee.fullName != null ? disbursement.loan.employee.fullName : '--'}">Employee Name</dd></div>
+                    <!-- Loan status -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Loan Status</dt><dd class="fd-detail-value" th:text="${disbursement.loan != null and disbursement.loan.loanStatus != null ? disbursement.loan.loanStatus : '--'}">APPROVED</dd></div>
+                    <!-- Approved amount -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Approved Amount</dt><dd class="fd-detail-value" th:text="${disbursement.loan != null and disbursement.loan.approvedAmount != null ? #numbers.formatDecimal(disbursement.loan.approvedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">100,000.00</dd></div>
+                </dl>
+            </section>
+
+            <!-- Card 2: amount summary -->
+            <section class="fa-card mb-4" aria-labelledby="amountSummaryTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="amountSummaryTitle">Amount Summary</h2></div>
+                <!-- Three amount boxes -->
+                <div class="fd-amount-grid">
+                    <!-- Approved loan amount -->
+                    <div class="fd-amount-box"><span class="fd-amount-label">Approved Loan Amount</span><span class="fd-amount-value" th:text="${disbursement.loan != null and disbursement.loan.approvedAmount != null ? #numbers.formatDecimal(disbursement.loan.approvedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">100,000.00</span></div>
+                    <!-- Total successfully disbursed -->
+                    <div class="fd-amount-box"><span class="fd-amount-label">Total Successfully Disbursed</span><span class="fd-amount-value" th:text="${totalDisbursedAmount != null ? #numbers.formatDecimal(totalDisbursedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">0.00</span></div>
+                    <!-- Remaining approved amount (highlighted) -->
+                    <div class="fd-amount-box fd-amount-box-key"><span class="fd-amount-label">Remaining Approved Amount</span><span class="fd-amount-value" th:text="${remainingApprovedAmount != null ? #numbers.formatDecimal(remainingApprovedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">100,000.00</span></div>
+                </div>
+            </section>
+
+            <!-- Card 3: disbursement information -->
+            <section class="fa-card mb-4" aria-labelledby="disbursementInfoTitle">
+                <!-- Card header with the status badge -->
+                <div class="fa-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <!-- Card title -->
+                    <h2 class="fa-card-title mb-0" id="disbursementInfoTitle">Disbursement Information</h2>
+                    <!-- Badge colour depends on status -->
+                    <span class="fa-status"
+                          th:classappend="${status == 'DISBURSED'} ? 'fa-status-success'
+                              : (${status == 'FAILED'} ? 'fa-status-danger'
+                              : (${status == 'PROCESSING'} ? 'fa-status-primary'
+                              : (${status == 'PENDING'} ? 'fa-status-info' : 'fa-status-neutral')))"
+                          th:text="${status != '' ? status : '--'}">PENDING</span>
+                </div>
+                <!-- Label and value grid -->
+                <dl class="fd-detail-grid">
+                    <!-- Disbursement amount -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Disbursement Amount</dt><dd class="fd-detail-value" th:text="${disbursement.disbursementAmount != null ? #numbers.formatDecimal(disbursement.disbursementAmount, 1, 'COMMA', 2, 'POINT') : '--'}">50,000.00</dd></div>
+                    <!-- Payment method -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Payment Method</dt><dd class="fd-detail-value" th:text="${disbursement.paymentMethod != null ? disbursement.paymentMethod : '--'}">BANK_TRANSFER</dd></div>
+                    <!-- Reference number -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Reference Number</dt><dd class="fd-detail-value fd-ref" th:text="${disbursement.referenceNumber != null and disbursement.referenceNumber != '' ? disbursement.referenceNumber : '--'}">--</dd></div>
+                    <!-- Processed by -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Processed By</dt><dd class="fd-detail-value" th:text="${disbursement.processedBy != null and disbursement.processedBy != '' ? disbursement.processedBy : '--'}">--</dd></div>
+                    <!-- Processing date -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Processing Date</dt><dd class="fd-detail-value" th:text="${disbursement.processingDate != null ? #temporals.format(disbursement.processingDate, 'dd/MM/yyyy') : '--'}">--</dd></div>
+                    <!-- Disbursement date -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Disbursement Date</dt><dd class="fd-detail-value" th:text="${disbursement.disbursementDate != null ? #temporals.format(disbursement.disbursementDate, 'dd/MM/yyyy') : '--'}">--</dd></div>
+                    <!-- Created at -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Created At</dt><dd class="fd-detail-value" th:text="${disbursement.createdAt != null ? #temporals.format(disbursement.createdAt, 'dd/MM/yyyy HH:mm') : '--'}">--</dd></div>
+                    <!-- Updated at -->
+                    <div class="fd-detail-item"><dt class="fd-detail-label">Updated At</dt><dd class="fd-detail-value" th:text="${disbursement.updatedAt != null ? #temporals.format(disbursement.updatedAt, 'dd/MM/yyyy HH:mm') : '--'}">--</dd></div>
+                    <!-- Remarks (full width) -->
+                    <div class="fd-detail-item fd-detail-wide"><dt class="fd-detail-label">Remarks</dt><dd class="fd-detail-value" th:text="${disbursement.remarks != null and disbursement.remarks != '' ? disbursement.remarks : '--'}">--</dd></div>
+                    <!-- Failure reason (full width) -->
+                    <div class="fd-detail-item fd-detail-wide"><dt class="fd-detail-label">Failure Reason</dt><dd class="fd-detail-value" th:text="${disbursement.failureReason != null and disbursement.failureReason != '' ? disbursement.failureReason : '--'}">--</dd></div>
+                    <!-- Cancellation reason (full width) -->
+                    <div class="fd-detail-item fd-detail-wide"><dt class="fd-detail-label">Cancellation Reason</dt><dd class="fd-detail-value" th:text="${disbursement.cancellationReason != null and disbursement.cancellationReason != '' ? disbursement.cancellationReason : '--'}">--</dd></div>
+                </dl>
+            </section>
+
+            <!-- Card 4: workflow actions -->
+            <section class="fa-card" aria-labelledby="workflowTitle">
+                <!-- Card header -->
+                <div class="fa-card-header"><h2 class="fa-card-title" id="workflowTitle">Workflow Actions</h2></div>
+
+                <!-- PENDING: start processing or cancel -->
+                <div class="fd-action-bar" th:if="${isPending}">
+                    <!-- Opens the start processing modal -->
+                    <button type="button" class="fa-btn fa-btn-primary" data-bs-toggle="modal" data-bs-target="#startProcessingModal"><i class="bi bi-play-circle" aria-hidden="true"></i> Start Processing</button>
+                    <!-- Opens the cancel modal -->
+                    <button type="button" class="fa-btn fa-btn-danger-outline" data-bs-toggle="modal" data-bs-target="#cancelModal"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancel Disbursement</button>
+                </div>
+
+                <!-- PROCESSING: complete or fail -->
+                <div class="fd-action-bar" th:if="${isProcessing}">
+                    <!-- Opens the complete modal -->
+                    <button type="button" class="fa-btn fa-btn-primary" data-bs-toggle="modal" data-bs-target="#completeModal"><i class="bi bi-check-circle" aria-hidden="true"></i> Complete Disbursement</button>
+                    <!-- Opens the fail modal -->
+                    <button type="button" class="fa-btn fa-btn-danger-outline" data-bs-toggle="modal" data-bs-target="#failModal"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> Mark Failed</button>
+                </div>
+
+                <!-- Terminal statuses: no actions -->
+                <p class="fd-terminal-note" th:unless="${isPending or isProcessing}">This disbursement is <strong th:text="${status}">DISBURSED</strong> and has no further workflow actions.</p>
+            </section>
+        </main>
+
+        <!-- Page footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<!-- ==================== Workflow modals (each posts with CSRF) ==================== -->
+
+<!-- Start processing modal, PENDING only -->
+<div class="modal fade" id="startProcessingModal" tabindex="-1" aria-labelledby="startProcessingTitle" aria-hidden="true" th:if="${isPending}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- POST to start-processing -->
+            <form method="post" th:action="@{/admin/disbursements/{id}/start-processing(id=${disbursement.id})}">
+                <!-- Modal title -->
+                <div class="modal-header"><h2 class="modal-title fs-5" id="startProcessingTitle">Start Disbursement Processing</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <!-- Modal message -->
+                <div class="modal-body"><p class="mb-0">This moves the disbursement from PENDING to PROCESSING. It can then be completed or marked failed, but it can no longer be cancelled.</p></div>
+                <!-- Modal buttons -->
+                <div class="modal-footer"><button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Cancel</button><button type="submit" class="fa-btn fa-btn-primary">Start Processing</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel modal, PENDING only -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelTitle" aria-hidden="true" th:if="${isPending}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- POST to cancel -->
+            <form method="post" th:action="@{/admin/disbursements/{id}/cancel(id=${disbursement.id})}">
+                <!-- Modal title -->
+                <div class="modal-header"><h2 class="modal-title fs-5" id="cancelTitle">Cancel Disbursement</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <!-- Reason field -->
+                <div class="modal-body">
+                    <!-- Reason label -->
+                    <label for="cancellationReason" class="fa-label">Cancellation Reason <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                    <!-- Reason textarea -->
+                    <textarea id="cancellationReason" name="cancellationReason" class="form-control fa-input" rows="4" maxlength="1000" placeholder="Explain why this disbursement is being cancelled..." required></textarea>
+                </div>
+                <!-- Modal buttons -->
+                <div class="modal-footer"><button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Request</button><button type="submit" class="fa-btn fa-btn-danger">Cancel Disbursement</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Complete modal, PROCESSING only -->
+<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeTitle" aria-hidden="true" th:if="${isProcessing}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- POST to complete -->
+            <form method="post" th:action="@{/admin/disbursements/{id}/complete(id=${disbursement.id})}">
+                <!-- Modal title -->
+                <div class="modal-header"><h2 class="modal-title fs-5" id="completeTitle">Complete Disbursement</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <!-- Summary and reference field -->
+                <div class="modal-body">
+                    <!-- Summary of what is being completed -->
+                    <div class="fd-summary-list">
+                        <div><span>Loan Application ID</span><strong th:text="${disbursement.loan != null and disbursement.loan.loanApplicationId != null ? disbursement.loan.loanApplicationId : '--'}">LOAN-10001</strong></div>
+                        <div><span>Disbursement Amount</span><strong th:text="${disbursement.disbursementAmount != null ? #numbers.formatDecimal(disbursement.disbursementAmount, 1, 'COMMA', 2, 'POINT') : '--'}">50,000.00</strong></div>
+                        <div><span>Payment Method</span><strong th:text="${disbursement.paymentMethod != null ? disbursement.paymentMethod : '--'}">BANK_TRANSFER</strong></div>
+                        <div><span>Remaining Approved Amount</span><strong th:text="${remainingApprovedAmount != null ? #numbers.formatDecimal(remainingApprovedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">100,000.00</strong></div>
+                    </div>
+                    <!-- Reference label -->
+                    <label for="referenceNumber" class="fa-label">Reference Number <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                    <!-- Reference input -->
+                    <input type="text" id="referenceNumber" name="referenceNumber" class="form-control fa-input" maxlength="100" placeholder="Bank or cheque reference" autocomplete="off" aria-describedby="referenceHelp" required>
+                    <!-- Reference help text -->
+                    <div class="fa-form-help" id="referenceHelp">Each reference number can be used only once.</div>
+                </div>
+                <!-- Modal buttons -->
+                <div class="modal-footer"><button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Cancel</button><button type="submit" class="fa-btn fa-btn-primary">Complete Disbursement</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Fail modal, PROCESSING only -->
+<div class="modal fade" id="failModal" tabindex="-1" aria-labelledby="failTitle" aria-hidden="true" th:if="${isProcessing}">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <!-- POST to fail -->
+            <form method="post" th:action="@{/admin/disbursements/{id}/fail(id=${disbursement.id})}">
+                <!-- Modal title -->
+                <div class="modal-header"><h2 class="modal-title fs-5" id="failTitle">Mark Disbursement Failed</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <!-- Reason field -->
+                <div class="modal-body">
+                    <!-- Reason label -->
+                    <label for="failureReason" class="fa-label">Failure Reason <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                    <!-- Reason textarea -->
+                    <textarea id="failureReason" name="failureReason" class="form-control fa-input" rows="4" maxlength="1000" placeholder="Explain why the payment failed..." required></textarea>
+                </div>
+                <!-- Modal buttons -->
+                <div class="modal-footer"><button type="button" class="fa-btn fa-btn-outline" data-bs-dismiss="modal">Keep Processing</button><button type="submit" class="fa-btn fa-btn-danger">Mark Failed</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Load Bootstrap JavaScript (dropdowns, alerts, modals) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load FundAxis dashboard script (sidebar toggle) -->
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

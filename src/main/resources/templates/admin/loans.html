@@ -1,0 +1,441 @@
+<!--- FundAxis Admin Loan Management (GET /admin/loans). ADMIN only: backend authorization stays authoritative.
+      List page only. Expected model attributes:
+        loans                  List<Loan> (or the content of a Spring Data Page)
+        totalLoans, draftAppliedLoans, approvedActiveLoans, rejectedClosedLoans   (summary counts over ALL loans)
+        totalElements, currentPage (zero-based), totalPages   (optional, enable pagination)
+        successMessage / errorMessage / warningMessage / infoMessage   (optional flash messages)
+      Loan: id, loanApplicationId, employee (employeeId, fullName), requestedAmount, interestRate, tenureMonths,
+            applicationDate, approvalDate, loanStatus (exact constants set by LoanService),
+            eligibilityStatus (ELIGIBLE | NOT_ELIGIBLE), createdAt, updatedAt --->
+
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Loan Management | FundAxis</title>
+
+    <!-- Bootstrap 5 + Bootstrap Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Shared FundAxis dashboard styles + the button / modal / table-footer / pagination styles from the Employee Management page -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <link th:href="@{/css/admin-loans.css}" rel="stylesheet">
+</head>
+<body class="fa-body">
+
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<div class="fa-shell">
+
+    <!-- Admin sidebar navigation -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+        <div class="fa-sidebar-brand">
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <nav class="fa-sidebar-nav">
+
+            <p class="fa-nav-heading">Dashboard</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Administration</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans is the active item on this page -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link active" aria-current="page"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <ul class="fa-nav-list">
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <p class="fa-nav-heading">Account</p>
+            <ul class="fa-nav-list">
+                <li>
+                    <a th:href="@{/change-password}" class="fa-nav-link">
+                        <i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span>
+                    </a>
+                </li>
+                <li>
+                    <!-- FundAxis logout form (sidebar) -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <button type="submit" class="fa-nav-link fa-nav-button">
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Mobile overlay behind sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <div class="fa-main-wrap">
+
+        <!-- FundAxis Admin topbar -->
+        <header class="fa-topbar">
+            <div class="fa-topbar-left">
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle"
+                        aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+
+            <div class="fa-topbar-right">
+                <!-- Notification placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications (none)">
+                    <i class="bi bi-bell" aria-hidden="true"></i>
+                </button>
+
+                <!-- Profile dropdown -->
+                <div class="dropdown">
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <span class="fa-profile-meta d-none d-sm-flex">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <li class="fa-dropdown-header">
+                            <span class="fa-profile-name" sec:authentication="name">username</span>
+                            <span class="fa-role-badge fa-role-admin">ADMIN</span>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item fa-dropdown-danger">
+                                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- ==========================================================
+             SEARCH / FILTER STATE & MAIN CONTENT WRAPPER
+             Captures keyword, loanStatus, eligibilityStatus, and loanType from query params.
+             ========================================================== -->
+        <main class="fa-content" id="main-content" tabindex="-1"
+              th:with="currency='BDT',
+                       kw=${param.keyword != null ? #strings.trim(param.keyword[0]) : ''},
+                       st=${param.loanStatus != null ? param.loanStatus[0] : ''},
+                       el=${param.eligibilityStatus != null ? param.eligibilityStatus[0] : ''},
+                       ltype=${param.loanType != null ? param.loanType[0] : ''},
+                       hasKw=${!#strings.isEmpty(kw)},
+                       hasStatus=${!#strings.isEmpty(st)},
+                       hasEligibility=${!#strings.isEmpty(el)},
+                       hasType=${!#strings.isEmpty(ltype)},
+                       hasFilter=${hasKw or hasStatus or hasEligibility or hasType},
+                       resultCount=${totalElements != null ? totalElements : (loans != null ? #lists.size(loans) : 0)}">
+
+            <div class="fa-page-header flex-wrap">
+                <div>
+                    <h1 class="fa-page-title">Loan Management</h1>
+                    <p class="fa-page-subtitle">Manage employee loan applications and loan lifecycle.</p>
+                    <nav aria-label="Breadcrumb">
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Loan Management</li>
+                        </ol>
+                    </nav>
+                </div>
+                <a th:href="@{/admin/loans/new}" class="fa-btn fa-btn-primary">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Loan
+                </a>
+            </div>
+
+            <!-- Global alert messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <div class="alert alert-success alert-dismissible fade show fa-alert" role="alert" th:if="${successMessage}">
+                    <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${successMessage}">Success message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-warning alert-dismissible fade show fa-alert" role="alert" th:if="${warningMessage}">
+                    <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                    <span th:text="${warningMessage}">Warning message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div class="alert alert-info alert-dismissible fade show fa-alert" role="alert" th:if="${infoMessage}">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <span th:text="${infoMessage}">Information message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Loan summary cards: counts over the FULL loan dataset (not just the current page) -->
+            <section class="row g-3 mb-3" aria-label="Loan summary">
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Total Loans</p>
+                            <p class="fa-stat-value" th:text="${totalLoans != null ? totalLoans : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Draft / Submitted</p>
+                            <p class="fa-stat-value" th:text="${draftAppliedLoans != null ? draftAppliedLoans : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-check-circle" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Approved / Active</p>
+                            <p class="fa-stat-value" th:text="${approvedActiveLoans != null ? approvedActiveLoans : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-6 col-xl-3">
+                    <div class="fa-card fa-stat-card">
+                        <span class="fa-stat-icon"><i class="bi bi-x-circle" aria-hidden="true"></i></span>
+                        <div>
+                            <p class="fa-stat-label">Rejected / Closed</p>
+                            <p class="fa-stat-value" th:text="${rejectedClosedLoans != null ? rejectedClosedLoans : '--'}">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==========================================================
+                 LOAN SEARCH & FILTER TOOLBAR
+                 Provides read-only GET controls to filter loans by keyword, status, eligibility, and type.
+                 ========================================================== -->
+            <section class="fa-card fa-toolbar mb-3" aria-label="Search and filter loans">
+                <form method="get" th:action="@{/admin/loans}" class="row g-3 align-items-end">
+
+                    <!-- 1. Keyword Search -->
+                    <div class="col-12 col-lg-3">
+                        <label for="loanSearchKeyword" class="fa-label">Search Keyword</label>
+                        <input type="search" class="form-control fa-input" id="loanSearchKeyword" name="keyword"
+                               placeholder="App ID, Employee ID or Name" autocomplete="off"
+                               th:value="${kw}">
+                    </div>
+
+                    <!-- 2. Loan Status Filter -->
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label for="loanStatusFilter" class="fa-label">Loan Status</label>
+                        <select class="form-select fa-input" id="loanStatusFilter" name="loanStatus">
+                            <option value="" th:selected="${!hasStatus}">All Statuses</option>
+                            <option value="DRAFT" th:selected="${st == 'DRAFT'}">DRAFT</option>
+                            <option value="SUBMITTED" th:selected="${st == 'SUBMITTED'}">SUBMITTED</option>
+                            <option value="UNDER_REVIEW" th:selected="${st == 'UNDER_REVIEW'}">UNDER_REVIEW</option>
+                            <option value="APPROVED" th:selected="${st == 'APPROVED'}">APPROVED</option>
+                            <option value="REJECTED" th:selected="${st == 'REJECTED'}">REJECTED</option>
+                            <option value="CANCELLED" th:selected="${st == 'CANCELLED'}">CANCELLED</option>
+                            <option value="DISBURSED" th:selected="${st == 'DISBURSED'}">DISBURSED</option>
+                            <option value="ACTIVE" th:selected="${st == 'ACTIVE'}">ACTIVE</option>
+                            <option value="COMPLETED" th:selected="${st == 'COMPLETED'}">COMPLETED</option>
+                            <option value="APPLIED" th:selected="${st == 'APPLIED'}">APPLIED</option>
+                            <option value="CLOSED" th:selected="${st == 'CLOSED'}">CLOSED</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Eligibility Status Filter -->
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label for="eligibilityStatusFilter" class="fa-label">Eligibility</label>
+                        <select class="form-select fa-input" id="eligibilityStatusFilter" name="eligibilityStatus">
+                            <option value="" th:selected="${!hasEligibility}">All Eligibility</option>
+                            <option value="PENDING" th:selected="${el == 'PENDING'}">PENDING</option>
+                            <option value="ELIGIBLE" th:selected="${el == 'ELIGIBLE'}">ELIGIBLE</option>
+                            <option value="NOT_ELIGIBLE" th:selected="${el == 'NOT_ELIGIBLE'}">NOT_ELIGIBLE</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Loan Type Filter -->
+                    <div class="col-12 col-sm-6 col-lg-2">
+                        <label for="loanTypeFilter" class="fa-label">Loan Type</label>
+                        <select class="form-select fa-input" id="loanTypeFilter" name="loanType">
+                            <option value="" th:selected="${!hasType}">All Loan Types</option>
+                            <option value="PERSONAL" th:selected="${ltype == 'PERSONAL'}">PERSONAL</option>
+                            <option value="EMERGENCY" th:selected="${ltype == 'EMERGENCY'}">EMERGENCY</option>
+                            <option value="HOME" th:selected="${ltype == 'HOME'}">HOME</option>
+                            <option value="EDUCATION" th:selected="${ltype == 'EDUCATION'}">EDUCATION</option>
+                            <option value="MEDICAL" th:selected="${ltype == 'MEDICAL'}">MEDICAL</option>
+                            <option value="OTHER" th:selected="${ltype == 'OTHER'}">OTHER</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-12 col-sm-6 col-lg-3 d-flex gap-2">
+                        <button type="submit" class="fa-btn fa-btn-primary flex-fill">
+                            <i class="bi bi-search" aria-hidden="true"></i> Apply Filters
+                        </button>
+                        <a th:href="@{/admin/loans}" class="fa-btn fa-btn-outline flex-fill">Clear</a>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Loan records table -->
+            <section class="fa-card" aria-labelledby="faLoansTitle">
+                <div class="fa-card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <h2 class="fa-card-title" id="faLoansTitle">Loan Records</h2>
+
+                    <!-- Result summary feedback announcement -->
+                    <p class="mb-0 text-secondary small" id="loanResultSummary" role="status" aria-live="polite">
+                        <span th:if="${!hasFilter}">Showing <strong th:text="${resultCount}">0</strong> <span th:text="${resultCount == 1 ? 'loan' : 'loans'}">loans</span></span>
+                        <span th:if="${hasFilter}">Showing <strong th:text="${resultCount}">0</strong> matching <span th:text="${resultCount == 1 ? 'loan record' : 'loan records'}">loan records</span></span>
+                    </p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table fa-table align-middle mb-0">
+                        <caption class="visually-hidden">FundAxis employee loan records</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Loan Application ID</th>
+                            <th scope="col">Employee ID</th>
+                            <th scope="col">Employee Name</th>
+                            <th scope="col" class="text-end">Requested Amount</th>
+                            <th scope="col" class="text-end">Interest Rate</th>
+                            <th scope="col">Tenure</th>
+                            <th scope="col">Eligibility</th>
+                            <th scope="col">Loan Status</th>
+                            <th scope="col">Application Date</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- s = upper-cased loan status, e = upper-cased eligibility. Only actions valid for the status are offered
+                             (backend still enforces the rules). Lifecycle actions (Submit, ...) live on the Loan Details page. -->
+                        <tr th:each="loan : ${loans}"
+                            th:with="s=${loan.loanStatus != null ? #strings.toUpperCase(loan.loanStatus) : ''},
+                                     e=${loan.eligibilityStatus != null ? #strings.toUpperCase(loan.eligibilityStatus) : ''},
+                                     isDraft=${s == 'DRAFT'}">
+                            <!-- Loan business identifier: loanApplicationId, never the database id -->
+                            <td class="fa-cell-id text-nowrap" th:text="${loan.loanApplicationId != null ? loan.loanApplicationId : '--'}">LN-2026-0001</td>
+                            <!-- Official bank Employee ID, never the database Employee id -->
+                            <td class="fa-cell-id" th:text="${loan.employee != null ? loan.employee.employeeId : '--'}">EMP001</td>
+                            <td th:text="${loan.employee != null ? loan.employee.fullName : '--'}">Full Name</td>
+                            <td class="text-end text-nowrap fw-semibold"
+                                th:text="${loan.requestedAmount != null ? currency + ' ' + #numbers.formatDecimal(loan.requestedAmount, 1, 'COMMA', 2, 'POINT') : '--'}">BDT 0.00</td>
+                            <td class="text-end text-nowrap"
+                                th:text="${loan.interestRate != null ? #numbers.formatDecimal(loan.interestRate, 1, 'COMMA', 2, 'POINT') + '%' : '--'}">0.00%</td>
+                            <td class="text-nowrap"
+                                th:text="${loan.tenureMonths != null ? loan.tenureMonths + (loan.tenureMonths == 1 ? ' month' : ' months') : '--'}">12 months</td>
+                            <td>
+                                <span class="fa-status"
+                                      th:classappend="${e == 'ELIGIBLE'} ? 'fa-status-success'
+                                          : (${e == 'NOT_ELIGIBLE'} ? 'fa-status-danger' : 'fa-status-neutral')"
+                                      th:text="${loan.eligibilityStatus != null ? loan.eligibilityStatus : '--'}">ELIGIBLE</span>
+                            </td>
+                            <td>
+                                <!-- Status is shown as text as well as colour -->
+                                <span class="fa-status"
+                                      th:classappend="${s == 'APPROVED' or s == 'ACTIVE'} ? 'fa-status-success'
+                                          : (${s == 'SUBMITTED' or #strings.contains(s, 'REVIEW')} ? 'fa-status-info'
+                                          : (${s == 'REJECTED'} ? 'fa-status-danger' : 'fa-status-neutral'))"
+                                      th:text="${loan.loanStatus != null ? loan.loanStatus : '--'}">DRAFT</span>
+                            </td>
+                            <td class="text-nowrap" th:text="${loan.applicationDate != null ? #temporals.format(loan.applicationDate, 'dd MMM yyyy') : '--'}">--</td>
+                            <td>
+                                <div class="fa-row-actions">
+                                    <a class="fa-btn fa-btn-outline fa-btn-sm"
+                                       th:href="@{/admin/loans/{loanApplicationId}(loanApplicationId=${loan.loanApplicationId})}"
+                                       th:aria-label="'View loan ' + ${loan.loanApplicationId}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i> View
+                                    </a>
+                                    <a class="fa-btn fa-btn-outline fa-btn-sm" th:if="${isDraft}"
+                                       th:href="@{/admin/loans/{loanApplicationId}/edit(loanApplicationId=${loan.loanApplicationId})}"
+                                       th:aria-label="'Edit loan ' + ${loan.loanApplicationId}">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i> Edit
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Empty state -->
+                        <tr th:if="${loans == null or loans.isEmpty()}">
+                            <td colspan="10" class="text-center text-secondary py-5">
+                                <p class="mb-3" th:if="${hasFilter}">No loan records match the selected filters.</p>
+                                <p class="mb-3" th:unless="${hasFilter}">No loan records found.</p>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a th:if="${hasFilter}" th:href="@{/admin/loans}" class="fa-btn fa-btn-outline fa-btn-sm">Clear Filters</a>
+                                    <a th:href="@{/admin/loans/new}" class="fa-btn fa-btn-primary fa-btn-sm">
+                                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Add Loan
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination-ready footer: shown only when the controller supplies totalPages > 1. Page numbers are zero-based. -->
+                <div class="fa-table-footer" th:if="${totalPages != null and totalPages > 1}">
+                    <span>Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">1</strong></span>
+
+                    <nav aria-label="Loan pagination">
+                        <ul class="pagination pagination-sm fa-pagination">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/loans(page=${currentPage - 1}, keyword=${kw}, loanStatus=${st}, eligibilityStatus=${el}, loanType=${ltype})}">Previous</a>
+                            </li>
+                            <li class="page-item" th:each="p : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${p == currentPage} ? 'active'">
+                                <a class="page-link" th:href="@{/admin/loans(page=${p}, keyword=${kw}, loanStatus=${st}, eligibilityStatus=${el}, loanType=${ltype})}" th:text="${p + 1}">1</a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                                <a class="page-link" th:href="@{/admin/loans(page=${currentPage + 1}, keyword=${kw}, loanStatus=${st}, eligibilityStatus=${el}, loanType=${ltype})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </section>
+
+        </main>
+
+
+        <!-- Admin dashboard footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

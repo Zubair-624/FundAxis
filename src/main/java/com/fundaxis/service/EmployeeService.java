@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.fundaxis.exception.EmployeeNotFoundException;
 import com.fundaxis.exception.DuplicateEmployeeException;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,8 +20,7 @@ public class EmployeeService {
 
     private final EmployeeRepository employeeRepository;
 
-    // EmployeeService needs EmployeeRepository
-    // to communicate with the database
+    // EmployeeService needs EmployeeRepository to communicate with the database
     public EmployeeService(EmployeeRepository employeeRepository) {
         this.employeeRepository = employeeRepository;
     }
@@ -121,6 +121,52 @@ public class EmployeeService {
 
         return employeeRepository.findByEmployeeStatus(employeeStatus);
     }
+
+
+    ///---------- Find employees who joined the fund on a specific date ----------
+    public List<Employee> getEmployeesByJoinDate(LocalDate fundJoinDate) {
+
+        // Keep IllegalArgumentException (or handle null) for invalid input parameters
+        if (fundJoinDate == null) {
+            throw new IllegalArgumentException("Join date cannot be null");
+        }
+
+        // Retrieve employees who joined the fund on the specified date
+        List<Employee> joinDateEmployees = employeeRepository.findByFundJoinDate(fundJoinDate);
+
+        // Throw your custom EmployeeNotFoundException if the list is empty
+        if (joinDateEmployees.isEmpty()) {
+            throw new EmployeeNotFoundException("No employees found with fund join date: " + fundJoinDate);
+        }
+
+        return employeeRepository.findByFundJoinDate(fundJoinDate);
+
+    }
+
+
+    ///---------- Find employees who joined the fund within a date range (Start & end date) ----------
+    public List<Employee> getEmployeesByJoinDateRange(LocalDate startDate, LocalDate endDate) {
+
+        // the start date must be earlier than or equal to the end date
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("Start date and end date must be provided");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
+        // Retrieve employees who joined the fund within the specified date range
+        List<Employee> employees = employeeRepository.findByFundJoinDateBetween(startDate, endDate);
+
+        // 3. Handle empty results (Valid Input, but Record Not Found -> EmployeeNotFoundException)
+        if (employees.isEmpty()) {
+            throw new EmployeeNotFoundException("No employees found who joined the fund between " + startDate + " and " + endDate);
+        }
+
+        return employees;
+    }
+
+
 
 
 

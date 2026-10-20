@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+
+<!--
+    FundAxis Admin Employee Form (ADMIN only; backend authorization stays authoritative).
+
+    CREATE mode: GET  /admin/employees/new          -> POST /admin/employees
+    EDIT mode:   GET  /admin/employees/{employeeId}/edit (model "editMode" = true)
+                                                    -> POST /admin/employees/{employeeId}/update
+
+    URLs use the business Employee ID ({employeeId}), which is also posted by the
+    read-only field, so the edit form still works when it is re-rendered after a failed update.
+-->
+
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <meta name="robots"
+          content="noindex, nofollow">
+
+    <title th:text="${editMode != null and editMode}
+            ? 'Edit Employee | FundAxis'
+            : 'Add Employee | FundAxis'">
+        Add Employee | FundAxis
+    </title>
+
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet">
+
+
+    <!-- FundAxis shared dashboard styles -->
+    <link th:href="@{/css/dashboard.css}"
+          rel="stylesheet">
+
+    <!-- Employee Management styles (buttons, form inputs, modals) -->
+    <link th:href="@{/css/admin-employees.css}"
+          rel="stylesheet">
+</head>
+
+
+<body class="fa-body">
+
+
+<!-- Skip navigation -->
+<a class="fa-skip-link"
+   href="#main-content">
+    Skip to main content
+</a>
+
+
+<div class="fa-shell">
+
+
+    <!-- =========================================================
+         ADMIN SIDEBAR
+         ========================================================= -->
+
+    <aside class="fa-sidebar"
+           id="faSidebar"
+           aria-label="Admin navigation">
+
+
+        <!-- Sidebar Brand -->
+        <div class="fa-sidebar-brand">
+
+            <a th:href="@{/admin/dashboard}"
+               class="fa-brand-link"
+               aria-label="FundAxis Admin dashboard home">
+
+                <img th:src="@{/images/fundaxis-logo.png}"
+                     alt="FundAxis"
+                     class="fa-brand-logo">
+
+                <span class="fa-brand-text">
+                    FundAxis
+                </span>
+            </a>
+
+
+            <!-- Mobile sidebar close button -->
+            <button type="button"
+                    class="fa-sidebar-close"
+                    id="faSidebarClose"
+                    aria-label="Close navigation menu">
+
+                <i class="bi bi-x-lg"
+                   aria-hidden="true">
+                </i>
+            </button>
+
+        </div>
+
+
+        <!-- Admin Navigation -->
+        <nav class="fa-sidebar-nav">
+
+
+            <!-- Dashboard -->
+            <p class="fa-nav-heading">
+                Dashboard
+            </p>
+
+            <ul class="fa-nav-list">
+
+                <li>
+                    <a th:href="@{/admin/dashboard}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-speedometer2"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Dashboard
+                        </span>
+                    </a>
+                </li>
+
+            </ul>
+
+
+            <!-- Administration (Employee Management is the active item on this page) -->
+            <p class="fa-nav-heading">
+                Administration
+            </p>
+
+            <ul class="fa-nav-list">
+
+                <li>
+                    <a th:href="@{/admin/employees}"
+                       class="fa-nav-link active"
+                       aria-current="page">
+
+                        <i class="bi bi-people"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Employee Management
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/contributions}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-piggy-bank"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Contributions
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/loans}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-cash-coin"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Loans
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/loan-extensions}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-calendar-plus"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Loan Extensions
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/disbursements}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-box-arrow-up-right"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Loan Disbursements
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/repayment-schedules}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-calendar-check"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Repayment Schedules
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/repayments}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-receipt"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Repayments
+                        </span>
+                    </a>
+                </li>
+
+            </ul>
+
+
+            <!-- Security & Access -->
+            <p class="fa-nav-heading">
+                Security &amp; Access
+            </p>
+
+            <ul class="fa-nav-list">
+
+                <li>
+                    <a th:href="@{/admin/user-accounts}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-person-gear"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            User Accounts
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+                    <a th:href="@{/admin/roles}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-shield-lock"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Role Management
+                        </span>
+                    </a>
+                </li>
+
+            </ul>
+
+
+            <!-- Account -->
+            <p class="fa-nav-heading">
+                Account
+            </p>
+
+            <ul class="fa-nav-list">
+
+                <li>
+                    <a th:href="@{/change-password}"
+                       class="fa-nav-link">
+
+                        <i class="bi bi-key-fill"
+                           aria-hidden="true">
+                        </i>
+
+                        <span>
+                            Change Password
+                        </span>
+                    </a>
+                </li>
+
+
+                <li>
+
+                    <!-- FundAxis logout form (POST + CSRF token added by Thymeleaf) -->
+                    <form th:action="@{/logout}"
+                          method="post"
+                          class="fa-logout-form">
+
+                        <button type="submit"
+                                class="fa-nav-link fa-nav-button">
+
+                            <i class="bi bi-box-arrow-right"
+                               aria-hidden="true">
+                            </i>
+
+                            <span>
+                                Sign Out
+                            </span>
+                        </button>
+
+                    </form>
+
+                </li>
+
+            </ul>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- Mobile overlay -->
+    <div class="fa-overlay"
+         id="faOverlay"
+         hidden>
+    </div>
+
+
+    <!-- =========================================================
+         MAIN AREA
+         ========================================================= -->
+
+    <div class="fa-main-wrap">
+
+
+        <!-- =========================================================
+             TOPBAR
+             ========================================================= -->
+
+        <header class="fa-topbar">
+
+
+            <div class="fa-topbar-left">
+
+                <button type="button"
+                        class="fa-menu-toggle"
+                        id="faMenuToggle"
+                        aria-label="Open navigation menu"
+                        aria-controls="faSidebar"
+                        aria-expanded="false">
+
+                    <i class="bi bi-list"
+                       aria-hidden="true">
+                    </i>
+
+                </button>
+
+
+                <span class="fa-topbar-title">
+
+                    FundAxis
+
+                    <span class="fa-topbar-sub d-none d-md-inline">
+                        Employee Fund Management
+                    </span>
+
+                </span>
+
+            </div>
+
+
+            <div class="fa-topbar-right">
+
+
+                <!-- Notifications (placeholder) -->
+                <button type="button"
+                        class="fa-icon-btn"
+                        aria-label="Notifications">
+
+                    <i class="bi bi-bell"
+                       aria-hidden="true">
+                    </i>
+
+                </button>
+
+
+                <!-- Admin Profile -->
+                <div class="dropdown">
+
+                    <button class="fa-profile-btn dropdown-toggle"
+                            type="button"
+                            id="faProfileMenu"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
+
+                        <span class="fa-avatar"
+                              aria-hidden="true">
+
+                            <i class="bi bi-person-fill">
+                            </i>
+
+                        </span>
+
+
+                        <span class="fa-profile-meta d-none d-sm-flex">
+
+                            <span class="fa-profile-name"
+                                  sec:authentication="name">
+                                username
+                            </span>
+
+                            <span class="fa-role-badge fa-role-admin">
+                                ADMIN
+                            </span>
+
+                        </span>
+
+                    </button>
+
+
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown"
+                        aria-labelledby="faProfileMenu">
+
+
+                        <li class="fa-dropdown-header">
+
+                            <span class="fa-profile-name"
+                                  sec:authentication="name">
+                                username
+                            </span>
+
+                            <span class="fa-role-badge fa-role-admin">
+                                ADMIN
+                            </span>
+
+                        </li>
+
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+                        <li>
+
+                            <a class="dropdown-item"
+                               th:href="@{/profile}">
+
+                                <i class="bi bi-person-badge"
+                                   aria-hidden="true">
+                                </i>
+
+                                My Profile
+
+                            </a>
+
+                        </li>
+
+
+                        <li>
+
+                            <a class="dropdown-item"
+                               th:href="@{/change-password}">
+
+                                <i class="bi bi-key"
+                                   aria-hidden="true">
+                                </i>
+
+                                Change Password
+
+                            </a>
+
+                        </li>
+
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+
+
+                        <li>
+
+                            <!-- FundAxis logout form (profile dropdown) -->
+                            <form th:action="@{/logout}"
+                                  method="post">
+
+                                <button type="submit"
+                                        class="dropdown-item fa-dropdown-danger">
+
+                                    <i class="bi bi-box-arrow-right"
+                                       aria-hidden="true">
+                                    </i>
+
+                                    Sign Out
+
+                                </button>
+
+                            </form>
+
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================================================
+             MAIN CONTENT
+             isEdit is true only when the controller sets editMode = true
+             ========================================================= -->
+
+        <main class="fa-content"
+              id="main-content"
+              tabindex="-1"
+              th:with="isEdit=${editMode != null and editMode}">
+
+
+            <!-- =====================================================
+                 FundAxis Admin Employee Form
+                 Create/Edit mode header
+                 ===================================================== -->
+
+            <div class="fa-page-header">
+
+                <div>
+
+                    <h1 class="fa-page-title"
+                        th:text="${isEdit}
+                        ? 'Edit Employee'
+                        : 'Add Employee'">
+
+                        Add Employee
+
+                    </h1>
+
+
+                    <p class="fa-page-subtitle"
+                       th:text="${isEdit}
+                       ? 'Update employee information in FundAxis.'
+                       : 'Create a new employee record for FundAxis.'">
+
+                        Create a new employee record for FundAxis.
+
+                    </p>
+
+
+                    <!-- Breadcrumb:
+                         Add:  Dashboard / Employee Management / Add Employee
+                         Edit: Dashboard / Employee Management / Employee Details / Edit Employee -->
+                    <nav aria-label="Breadcrumb">
+
+                        <ol class="breadcrumb fa-breadcrumb">
+
+                            <li class="breadcrumb-item">
+
+                                <a th:href="@{/admin/dashboard}">
+                                    Dashboard
+                                </a>
+
+                            </li>
+
+
+                            <li class="breadcrumb-item">
+
+                                <a th:href="@{/admin/employees}">
+                                    Employee Management
+                                </a>
+
+                            </li>
+
+
+                            <!-- Employee Details crumb (edit mode only) -->
+                            <li class="breadcrumb-item"
+                                th:if="${isEdit}">
+
+                                <a th:href="@{/admin/employees/{employeeId}(employeeId=${employee.employeeId})}">
+                                    Employee Details
+                                </a>
+
+                            </li>
+
+
+                            <li class="breadcrumb-item active"
+                                aria-current="page"
+                                th:text="${isEdit}
+                                ? 'Edit Employee'
+                                : 'Add Employee'">
+
+                                Add Employee
+
+                            </li>
+
+                        </ol>
+
+                    </nav>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 GLOBAL ERROR MESSAGE
+                 ===================================================== -->
+
+            <div class="fa-alerts"
+                 aria-live="polite">
+
+                <div class="alert alert-danger alert-dismissible fade show fa-alert"
+                     role="alert"
+                     th:if="${errorMessage != null}">
+
+                    <i class="bi bi-exclamation-octagon-fill"
+                       aria-hidden="true">
+                    </i>
+
+                    <span th:text="${errorMessage}">
+                        Error message.
+                    </span>
+
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 EMPLOYEE FORM
+                 ===================================================== -->
+
+            <div class="row justify-content-center">
+
+                <div class="col-12 col-xl-9">
+
+
+                    <!--
+                        CREATE:
+                        POST /admin/employees
+
+                        EDIT:
+                        POST /admin/employees/{employeeId}/update
+                    -->
+
+                    <form method="post"
+                          novalidate
+                          th:object="${employee}"
+                          th:action="${isEdit}
+                          ? @{/admin/employees/{employeeId}/update(employeeId=${employee.employeeId})}
+                          : @{/admin/employees}">
+
+
+                        <section class="fa-card"
+                                 aria-labelledby="employeeFormTitle">
+
+
+                            <!-- Form Header -->
+                            <div class="fa-card-header">
+
+                                <h2 class="fa-card-title"
+                                    id="employeeFormTitle">
+
+                                    Employee Details
+
+                                </h2>
+
+                            </div>
+
+
+                            <div class="p-3 p-md-4">
+
+
+                                <!-- Employee validation: form-level errors from the backend
+                                     (field-level errors are shown under each field below) -->
+                                <div class="alert alert-danger fa-alert"
+                                     role="alert"
+                                     th:if="${#fields.hasGlobalErrors()}">
+
+                                    <i class="bi bi-exclamation-octagon-fill"
+                                       aria-hidden="true">
+                                    </i>
+
+
+                                    <div>
+
+                                        <p class="mb-0"
+                                           th:each="err : ${#fields.globalErrors()}"
+                                           th:text="${err}">
+
+                                            Validation error.
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <p class="text-secondary small mb-3">
+
+                                    Fields marked with
+
+                                    <span class="text-danger"
+                                          aria-hidden="true">
+                                        *
+                                    </span>
+
+                                    are required.
+
+                                </p>
+
+
+                                <!-- Employee fields -->
+                                <div class="row g-3">
+
+
+                                    <!-- =================================================
+                                         EMPLOYEE ID
+                                         Editable when creating; read-only when editing
+                                         (the business ID may already be used by other records)
+                                         ================================================= -->
+
+                                    <div class="col-12 col-md-6">
+
+                                        <label for="employeeId"
+                                               class="fa-label">
+
+                                            Employee ID
+
+                                            <span class="text-danger"
+                                                  aria-hidden="true">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <input type="text"
+                                               id="employeeId"
+                                               class="form-control fa-input"
+                                               th:field="*{employeeId}"
+                                               placeholder="e.g. EMP005"
+                                               required
+                                               autocomplete="off"
+                                               th:readonly="${isEdit}"
+                                               th:classappend="${#fields.hasErrors('employeeId')} ? 'is-invalid' : (${isEdit} ? 'bg-body-secondary' : '')"
+                                               aria-describedby="employeeIdHelp employeeIdError">
+
+
+                                        <div class="form-text"
+                                             id="employeeIdHelp">
+
+                                            Unique official bank employee identifier.
+
+                                        </div>
+
+
+                                        <div class="invalid-feedback"
+                                             id="employeeIdError"
+                                             th:if="${#fields.hasErrors('employeeId')}"
+                                             th:errors="*{employeeId}">
+
+                                            Employee ID error.
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- =================================================
+                                         FULL NAME
+                                         ================================================= -->
+
+                                    <div class="col-12 col-md-6">
+
+                                        <label for="fullName"
+                                               class="fa-label">
+
+                                            Full Name
+
+                                            <span class="text-danger"
+                                                  aria-hidden="true">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <input type="text"
+                                               id="fullName"
+                                               class="form-control fa-input"
+                                               th:field="*{fullName}"
+                                               placeholder="Enter employee full name"
+                                               required
+                                               autocomplete="name"
+                                               th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'"
+                                               aria-describedby="fullNameError">
+
+
+                                        <div class="invalid-feedback"
+                                             id="fullNameError"
+                                             th:if="${#fields.hasErrors('fullName')}"
+                                             th:errors="*{fullName}">
+
+                                            Full name error.
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- =================================================
+                                         EMAIL
+                                         The backend decides uniqueness (an employee may keep
+                                         their own email; another employee may not reuse it)
+                                         ================================================= -->
+
+                                    <div class="col-12 col-md-6">
+
+                                        <label for="email"
+                                               class="fa-label">
+
+                                            Email Address
+
+                                            <span class="text-danger"
+                                                  aria-hidden="true">
+                                                *
+                                            </span>
+
+                                        </label>
+
+
+                                        <input type="email"
+                                               id="email"
+                                               class="form-control fa-input"
+                                               th:field="*{email}"
+                                               placeholder="employee@company.com"
+                                               required
+                                               autocomplete="email"
+                                               th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"
+                                               aria-describedby="emailHelp emailError">
+
+
+                                        <div class="form-text"
+                                             id="emailHelp">
+
+                                            Must be unique across FundAxis employees.
+
+                                        </div>
+
+
+                                        <div class="invalid-feedback"
+                                             id="emailError"
+                                             th:if="${#fields.hasErrors('email')}"
+                                             th:errors="*{email}">
+
+                                            Email error.
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- =================================================
+                                         PHONE NUMBER
+                                         Not marked required here: backend validation decides
+                                         ================================================= -->
+
+                                    <div class="col-12 col-md-6">
+
+                                        <label for="phoneNumber"
+                                               class="fa-label">
+
+                                            Phone Number
+
+                                        </label>
+
+
+                                        <input type="tel"
+                                               id="phoneNumber"
+                                               class="form-control fa-input"
+                                               th:field="*{phoneNumber}"
+                                               placeholder="Enter phone number"
+                                               autocomplete="tel"
+                                               th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid'"
+                                               aria-describedby="phoneNumberError">
+
+
+                                        <div class="invalid-feedback"
+                                             id="phoneNumberError"
+                                             th:if="${#fields.hasErrors('phoneNumber')}"
+                                             th:errors="*{phoneNumber}">
+
+                                            Phone number error.
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- =================================================
+                                     CREATE MODE NOTE
+                                     ================================================= -->
+
+                                <div class="fa-modal-employee mt-4 mb-0"
+                                     th:unless="${isEdit}">
+
+                                    <i class="bi bi-info-circle me-1"
+                                       aria-hidden="true">
+                                    </i>
+
+                                    New employees are created as
+
+                                    <strong>
+                                        ACTIVE
+                                    </strong>.
+
+                                    A login account is not created here.
+
+                                    User access can later be connected from
+                                    User Account Management.
+
+                                </div>
+
+
+                                <!-- =================================================
+                                     EDIT MODE NOTE
+                                     Status changes stay separate, auditable actions
+                                     ================================================= -->
+
+                                <div class="fa-modal-employee mt-4 mb-0"
+                                     th:if="${isEdit}">
+
+                                    <i class="bi bi-shield-lock me-1"
+                                       aria-hidden="true">
+                                    </i>
+
+                                    Employee ID is the official bank employee
+                                    identifier and cannot be changed during edit.
+
+                                    Employee activation and deactivation are
+                                    handled separately.
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- =====================================================
+                                 Employee form actions
+                                 ===================================================== -->
+
+                            <div class="fa-table-footer justify-content-end">
+
+
+                                <!-- Cancel - Add Mode: back to the employee list -->
+                                <a th:if="${!isEdit}"
+                                   th:href="@{/admin/employees}"
+                                   class="fa-btn fa-btn-outline flex-fill flex-sm-grow-0">
+
+                                    Cancel
+
+                                </a>
+
+
+                                <!-- Cancel - Edit Mode: back to this employee's details -->
+                                <a th:if="${isEdit}"
+                                   th:href="@{/admin/employees/{employeeId}(employeeId=${employee.employeeId})}"
+                                   class="fa-btn fa-btn-outline flex-fill flex-sm-grow-0">
+
+                                    Cancel
+
+                                </a>
+
+
+                                <!-- Save / Update -->
+                                <button type="submit"
+                                        class="fa-btn fa-btn-primary flex-fill flex-sm-grow-0">
+
+                                    <i class="bi bi-check2-circle"
+                                       aria-hidden="true">
+                                    </i>
+
+
+                                    <span th:text="${isEdit}
+                                    ? 'Update Employee'
+                                    : 'Save Employee'">
+
+                                        Save Employee
+
+                                    </span>
+
+                                </button>
+
+                            </div>
+
+                        </section>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </main>
+
+
+        <!-- =========================================================
+             FOOTER
+             ========================================================= -->
+
+        <footer class="fa-footer">
+
+            <span>
+                FundAxis &mdash; Employee Fund Management System
+            </span>
+
+            <span>
+                Authorized Internal Use Only
+            </span>
+
+        </footer>
+
+    </div>
+
+</div>
+
+
+<!-- Bootstrap JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+
+<!-- FundAxis Dashboard JavaScript -->
+<script th:src="@{/js/dashboard.js}">
+</script>
+
+
+</body>
+
+</html>

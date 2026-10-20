@@ -8,6 +8,7 @@ import com.fundaxis.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -45,9 +46,9 @@ public class LoanController {
     ///---------- Get All Loans ----------
     @PreAuthorize("hasAnyRole('ADMIN', 'IT_SUPPORT')")
     @GetMapping
-    public ResponseEntity<List<Loan>> getAllLoans() {
+    public ResponseEntity<List<Loan>> getAllLoansList() {
 
-        return ResponseEntity.ok(loanService.getAllLoans());
+        return ResponseEntity.ok(loanService.getAllLoansList());
 
     }
 
@@ -205,6 +206,14 @@ public class LoanController {
 
         return ResponseEntity.ok(loanService.cancelLoan(id));
 
+    }
+
+
+    // Allow only specified loan fields to be bound from form submissions
+    @InitBinder("loan")
+    public void initBinder(WebDataBinder binder) {
+        binder.setAllowedFields("loanApplicationId", "loanType", "loanPurpose",
+                "requestedAmount", "interestRate", "tenureMonths", "applicationDate");
     }
 
 

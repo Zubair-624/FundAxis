@@ -212,4 +212,30 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(exception.getMessage());
     }
+
+
+    //==================== Repayment Exceptions ====================//
+
+    @ExceptionHandler(RepaymentNotFoundException.class)
+    public ResponseEntity<String> handleRepaymentNotFoundException(
+            RepaymentNotFoundException exception
+    ) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+
+
+
+
+    @ExceptionHandler(DuplicateRepaymentException.class)
+    public ResponseEntity<String> handleDuplicateRepaymentException(
+            DuplicateRepaymentException exception
+    ) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
 }

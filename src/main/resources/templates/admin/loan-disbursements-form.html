@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<!--/* Add Disbursement: GET /admin/disbursements/new, POST /admin/disbursements (model: disbursement, loanApplicationId, errorMessage) */-->
+<!-- Page root with Thymeleaf and Spring Security namespaces -->
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<!-- Head holds metadata and stylesheets -->
+<head>
+    <!-- Use UTF-8 character encoding -->
+    <meta charset="UTF-8">
+    <!-- Make the page responsive on mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Keep this admin page out of search engines -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Browser tab title -->
+    <title>Add Loan Disbursement | FundAxis</title>
+    <!-- Load Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Load Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Load shared FundAxis dashboard styles -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <!-- Load admin employee page styles -->
+    <link th:href="@{/css/admin-employees.css}" rel="stylesheet">
+    <!-- Load the one loan disbursement module stylesheet -->
+    <link th:href="@{/css/loan-disbursements.css}" rel="stylesheet">
+</head>
+
+<!-- Body with the shared FundAxis class -->
+<body class="fa-body">
+
+<!-- Accessibility link to jump past the menu -->
+<a class="fa-skip-link" href="#main-content">Skip to main content</a>
+
+<!-- Outer shell holding sidebar and content -->
+<div class="fa-shell">
+
+    <!-- Left admin sidebar -->
+    <aside class="fa-sidebar" id="faSidebar" aria-label="Admin navigation">
+
+        <!-- Sidebar logo area -->
+        <div class="fa-sidebar-brand">
+            <!-- Logo link back to dashboard -->
+            <a th:href="@{/admin/dashboard}" class="fa-brand-link" aria-label="FundAxis Admin dashboard home">
+                <!-- Logo image -->
+                <img th:src="@{/images/fundaxis-logo.png}" alt="FundAxis" class="fa-brand-logo">
+                <!-- Brand name text -->
+                <span class="fa-brand-text">FundAxis</span>
+            </a>
+            <!-- Button to close sidebar on mobile -->
+            <button type="button" class="fa-sidebar-close" id="faSidebarClose" aria-label="Close navigation menu"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+
+        <!-- Sidebar navigation menu -->
+        <nav class="fa-sidebar-nav">
+            <!-- Dashboard group heading -->
+            <p class="fa-nav-heading">Dashboard</p>
+            <!-- Dashboard group list -->
+            <ul class="fa-nav-list">
+                <!-- Dashboard link -->
+                <li><a th:href="@{/admin/dashboard}" class="fa-nav-link"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Dashboard</span></a></li>
+            </ul>
+
+            <!-- Administration group heading -->
+            <p class="fa-nav-heading">Administration</p>
+            <!-- Administration group list -->
+            <ul class="fa-nav-list">
+                <!-- Employee management link -->
+                <li><a th:href="@{/admin/employees}" class="fa-nav-link"><i class="bi bi-people" aria-hidden="true"></i><span>Employee Management</span></a></li>
+                <!-- Contributions link -->
+                <li><a th:href="@{/admin/contributions}" class="fa-nav-link"><i class="bi bi-piggy-bank" aria-hidden="true"></i><span>Contributions</span></a></li>
+                <!-- Loans link -->
+                <li><a th:href="@{/admin/loans}" class="fa-nav-link"><i class="bi bi-cash-coin" aria-hidden="true"></i><span>Loans</span></a></li>
+                <!-- Loan extensions link -->
+                <li><a th:href="@{/admin/loan-extensions}" class="fa-nav-link"><i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Loan Extensions</span></a></li>
+                <!-- Loan disbursements link (current section) -->
+                <li><a th:href="@{/admin/disbursements}" class="fa-nav-link active" aria-current="page"><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i><span>Loan Disbursements</span></a></li>
+                <!-- Repayment schedules link -->
+                <li><a th:href="@{/admin/repayment-schedules}" class="fa-nav-link"><i class="bi bi-calendar-check" aria-hidden="true"></i><span>Repayment Schedules</span></a></li>
+                <!-- Repayments link -->
+                <li><a th:href="@{/admin/repayments}" class="fa-nav-link"><i class="bi bi-receipt" aria-hidden="true"></i><span>Repayments</span></a></li>
+            </ul>
+
+            <!-- Security group heading -->
+            <p class="fa-nav-heading">Security &amp; Access</p>
+            <!-- Security group list -->
+            <ul class="fa-nav-list">
+                <!-- User accounts link -->
+                <li><a th:href="@{/admin/user-accounts}" class="fa-nav-link"><i class="bi bi-person-gear" aria-hidden="true"></i><span>User Accounts</span></a></li>
+                <!-- Role management link -->
+                <li><a th:href="@{/admin/roles}" class="fa-nav-link"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Role Management</span></a></li>
+            </ul>
+
+            <!-- Account group heading -->
+            <p class="fa-nav-heading">Account</p>
+            <!-- Account group list -->
+            <ul class="fa-nav-list">
+                <!-- Change password link -->
+                <li><a th:href="@{/change-password}" class="fa-nav-link"><i class="bi bi-key-fill" aria-hidden="true"></i><span>Change Password</span></a></li>
+                <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                <li>
+                    <!-- Logout form -->
+                    <form th:action="@{/logout}" method="post" class="fa-logout-form">
+                        <!-- Logout button -->
+                        <button type="submit" class="fa-nav-link fa-nav-button"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Sign Out</span></button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Dark overlay shown behind mobile sidebar -->
+    <div class="fa-overlay" id="faOverlay" hidden></div>
+
+    <!-- Right side wrapper with topbar and content -->
+    <div class="fa-main-wrap">
+
+        <!-- Top bar -->
+        <header class="fa-topbar">
+            <!-- Left part of top bar -->
+            <div class="fa-topbar-left">
+                <!-- Hamburger button for mobile -->
+                <button type="button" class="fa-menu-toggle" id="faMenuToggle" aria-label="Open navigation menu" aria-controls="faSidebar" aria-expanded="false"><i class="bi bi-list" aria-hidden="true"></i></button>
+                <!-- App title in top bar -->
+                <span class="fa-topbar-title">FundAxis <span class="fa-topbar-sub d-none d-md-inline">Employee Fund Management</span></span>
+            </div>
+            <!-- Right part of top bar -->
+            <div class="fa-topbar-right">
+                <!-- Notification button placeholder -->
+                <button type="button" class="fa-icon-btn" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i></button>
+                <!-- Profile dropdown wrapper -->
+                <div class="dropdown">
+                    <!-- Button that opens the profile menu -->
+                    <button class="fa-profile-btn dropdown-toggle" type="button" id="faProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Avatar circle -->
+                        <span class="fa-avatar" aria-hidden="true"><i class="bi bi-person-fill"></i></span>
+                        <!-- Name and role, hidden on tiny screens -->
+                        <span class="fa-profile-meta d-none d-sm-flex"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></span>
+                    </button>
+                    <!-- Dropdown menu items -->
+                    <ul class="dropdown-menu dropdown-menu-end fa-dropdown" aria-labelledby="faProfileMenu">
+                        <!-- Dropdown header with username and role -->
+                        <li class="fa-dropdown-header"><span class="fa-profile-name" sec:authentication="name">username</span><span class="fa-role-badge fa-role-admin">ADMIN</span></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Profile link -->
+                        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person-badge" aria-hidden="true"></i> My Profile</a></li>
+                        <!-- Change password link -->
+                        <li><a class="dropdown-item" th:href="@{/change-password}"><i class="bi bi-key" aria-hidden="true"></i> Change Password</a></li>
+                        <!-- Divider line -->
+                        <li><hr class="dropdown-divider"></li>
+                        <!-- Sign out item with a POST form so logout is CSRF-safe -->
+                        <li><form th:action="@{/logout}" method="post"><button type="submit" class="dropdown-item fa-dropdown-danger"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sign Out</button></form></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content area -->
+        <main class="fa-content" id="main-content" tabindex="-1">
+
+            <!-- Page header with title and back button -->
+            <div class="fa-page-header flex-wrap">
+                <!-- Title block -->
+                <div>
+                    <!-- Page title -->
+                    <h1 class="fa-page-title">Add Loan Disbursement</h1>
+                    <!-- Page description -->
+                    <p class="fa-page-subtitle">Create a pending disbursement request for an approved loan.</p>
+                    <!-- Breadcrumb trail -->
+                    <nav aria-label="Breadcrumb">
+                        <!-- Breadcrumb list -->
+                        <ol class="breadcrumb fa-breadcrumb">
+                            <!-- Dashboard crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
+                            <!-- Disbursements list crumb -->
+                            <li class="breadcrumb-item"><a th:href="@{/admin/disbursements}">Loan Disbursements</a></li>
+                            <!-- Current page crumb -->
+                            <li class="breadcrumb-item active" aria-current="page">Add Disbursement</li>
+                        </ol>
+                    </nav>
+                </div>
+                <!-- Back button to the list -->
+                <a th:href="@{/admin/disbursements}" class="fa-btn fa-btn-outline"><i class="bi bi-arrow-left" aria-hidden="true"></i> Back to Loan Disbursements</a>
+            </div>
+
+            <!-- Area for flash messages -->
+            <div class="fa-alerts" aria-live="polite">
+                <!-- Error alert, shown only if errorMessage exists -->
+                <div class="alert alert-danger alert-dismissible fade show fa-alert" role="alert" th:if="${errorMessage}">
+                    <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                    <span th:text="${errorMessage}">Error message.</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <!-- Form card -->
+            <section class="fa-card fa-form-card" aria-labelledby="disbursementFormTitle">
+                <!-- Card header -->
+                <div class="fa-card-header">
+                    <!-- Card title -->
+                    <h2 class="fa-card-title" id="disbursementFormTitle">Disbursement Details</h2>
+                </div>
+
+                <!-- Form posts to the create route and binds to the disbursement object -->
+                <form method="post" th:action="@{/admin/disbursements}" th:object="${disbursement}">
+
+                    <!-- Section 1: parent loan -->
+                    <div class="fa-form-section">
+                        <!-- Section title -->
+                        <h3 class="fa-form-section-title">Parent Loan</h3>
+                        <!-- Grid row -->
+                        <div class="row g-3">
+                            <!-- Loan ID column -->
+                            <div class="col-12 col-md-6">
+                                <!-- Loan ID label with required marker -->
+                                <label for="loanApplicationId" class="fa-label">Loan Application ID <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Loan ID input, not bound to the entity; the typed value is restored after an error -->
+                                <input type="text" id="loanApplicationId" name="loanApplicationId" class="form-control fa-input"
+                                       th:value="${loanApplicationId != null ? loanApplicationId : (param.loanApplicationId != null ? param.loanApplicationId[0] : '')}"
+                                       placeholder="e.g. LOAN-10001" autocomplete="off" spellcheck="false" maxlength="50"
+                                       aria-describedby="loanApplicationIdHelp" required>
+                                <!-- Loan ID help text -->
+                                <div class="fa-form-help" id="loanApplicationIdHelp">Enter the official Loan Application ID of an approved loan.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: disbursement details -->
+                    <div class="fa-form-section">
+                        <!-- Section title -->
+                        <h3 class="fa-form-section-title">Disbursement</h3>
+                        <!-- Grid row -->
+                        <div class="row g-3">
+                            <!-- Amount column -->
+                            <div class="col-12 col-md-6">
+                                <!-- Amount label with required marker -->
+                                <label for="disbursementAmount" class="fa-label">Disbursement Amount <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Amount input bound to disbursementAmount -->
+                                <input type="number" id="disbursementAmount" th:field="*{disbursementAmount}" class="form-control fa-input"
+                                       step="0.01" min="0.01" inputmode="decimal" placeholder="e.g. 50000.00"
+                                       th:classappend="${#fields.hasErrors('disbursementAmount')} ? 'is-invalid'"
+                                       aria-describedby="disbursementAmountHelp disbursementAmountError" required>
+                                <!-- Amount help text -->
+                                <div class="fa-form-help" id="disbursementAmountHelp">Cannot exceed the remaining approved amount of the loan.</div>
+                                <!-- Amount error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="disbursementAmountError"
+                                     th:if="${#fields.hasErrors('disbursementAmount')}" th:errors="*{disbursementAmount}">Amount error.</div>
+                            </div>
+
+                            <!-- Payment method column -->
+                            <div class="col-12 col-md-6">
+                                <!-- Payment method label with required marker -->
+                                <label for="paymentMethod" class="fa-label">Payment Method <span class="text-danger" aria-hidden="true">*</span><span class="visually-hidden">(required)</span></label>
+                                <!-- Payment method dropdown bound to paymentMethod -->
+                                <select id="paymentMethod" th:field="*{paymentMethod}" class="form-select fa-input"
+                                        th:classappend="${#fields.hasErrors('paymentMethod')} ? 'is-invalid'"
+                                        aria-describedby="paymentMethodError" required>
+                                    <!-- Empty choice forces the admin to pick one -->
+                                    <option value="">Select payment method</option>
+                                    <option value="BANK_TRANSFER">BANK_TRANSFER</option>
+                                    <option value="CASH">CASH</option>
+                                    <option value="CHEQUE">CHEQUE</option>
+                                    <option value="OTHER">OTHER</option>
+                                </select>
+                                <!-- Payment method error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="paymentMethodError"
+                                     th:if="${#fields.hasErrors('paymentMethod')}" th:errors="*{paymentMethod}">Payment method error.</div>
+                            </div>
+
+                            <!-- Remarks column -->
+                            <div class="col-12">
+                                <!-- Remarks label (optional) -->
+                                <label for="remarks" class="fa-label">Remarks <span class="text-secondary small">(optional)</span></label>
+                                <!-- Remarks textarea bound to remarks -->
+                                <textarea id="remarks" th:field="*{remarks}" class="form-control fa-input" rows="4" maxlength="1000"
+                                          placeholder="Add any note that helps the reviewer..."
+                                          th:classappend="${#fields.hasErrors('remarks')} ? 'is-invalid'"
+                                          aria-describedby="remarksHelp remarksError"></textarea>
+                                <!-- Remarks help text -->
+                                <div class="fa-form-help" id="remarksHelp">Up to 1000 characters.</div>
+                                <!-- Remarks error, shown only when invalid -->
+                                <div class="invalid-feedback d-block" id="remarksError"
+                                     th:if="${#fields.hasErrors('remarks')}" th:errors="*{remarks}">Remarks error.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rules panel -->
+                    <div class="fa-form-section pt-0">
+                        <!-- Info panel -->
+                        <div class="fd-info-panel">
+                            <!-- Panel heading -->
+                            <strong><i class="bi bi-info-circle me-1" aria-hidden="true"></i>Before you submit</strong>
+                            <!-- Rules list -->
+                            <ul>
+                                <li>Only APPROVED loans can enter the disbursement workflow.</li>
+                                <li>The amount cannot exceed the remaining approved amount.</li>
+                                <li>New disbursements start as PENDING and are processed on the details page.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: form buttons -->
+                    <div class="fa-form-section fa-form-actions">
+                        <!-- Cancel back to the list -->
+                        <a th:href="@{/admin/disbursements}" class="fa-btn fa-btn-outline">Cancel</a>
+                        <!-- Submit button -->
+                        <button type="submit" class="fa-btn fa-btn-primary"><i class="bi bi-check-lg" aria-hidden="true"></i> Create Disbursement</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+
+        <!-- Page footer -->
+        <footer class="fa-footer">
+            <span>FundAxis &mdash; Employee Fund Management System</span>
+            <span>Authorized Internal Use Only</span>
+        </footer>
+    </div>
+</div>
+
+<!-- Load Bootstrap JavaScript (dropdowns, alerts) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Load FundAxis dashboard script (sidebar toggle) -->
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
